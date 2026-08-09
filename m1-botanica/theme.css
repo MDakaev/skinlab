@@ -1,71 +1,175 @@
-/* Макет 1 — Botanica: мягкий ботанический app-shell.
-   Палитра ограничена четырьмя цветами: песок #dfd7c7, олива #7a774a,
-   тёмно-коричневый #483f29 и холодный серо-голубой #a1afb8. Все остальные
-   оттенки — смеси этих четырёх, белый и чёрный не используются. */
+/* Макет 1 — Botanica: мягкий app-shell в голубой палитре.
+   Основа — четыре холодных оттенка: дымка #eef5fb, серо-голубой #9dbdd4,
+   лазурь #2f6d9e и глубокий тёмно-синий #16334a. Пятый цвет, тёплая охра
+   #9c6435, используется только для предупреждений — иначе «осторожно»
+   не отличить от «ок» внутри одной синей гаммы.
+
+   Все цвета объявлены через семантические переменные, поэтому тёмная тема
+   ниже переопределяет только их, не трогая ни одного правила разметки.
+   Тройки *-rgb нужны там, где цвет идёт с прозрачностью. */
 
 :root {
-  --sand: #dfd7c7;
-  --olive: #7a774a;
-  --ink: #483f29;
-  --steel: #a1afb8;
+  --mist: #eef5fb;
+  --sky: #d8e8f4;
+  --steel: #9dbdd4;
+  --azure: #2f6d9e;
+  --navy: #16334a;
+  --amber: #9c6435;
 
-  /* Ступени фона: тёплый песок для карточек, холодные смеси песка
-     с серо-голубым — для подложек. Так светлое остаётся светлым,
-     а прохлада появляется без ухода в темноту. */
-  --sand-2: #c6c7c1;
-  --sand-3: #b7bdbd;
-  --sand-4: var(--steel);
+  --navy-rgb: 22, 51, 74;
+  --steel-rgb: 157, 189, 212;
+  --azure-rgb: 47, 109, 158;
+  --mist-rgb: 238, 245, 251;
 
-  --bg: var(--sand-2);
-  --surface: var(--sand);
-  --surface-2: var(--sand-3);
-  --text: var(--ink);
-  --muted: #5b5847;
-  --line: rgba(72, 63, 41, 0.14);
-  --brand: var(--olive);
-  --brand-deep: #5e5b35;
+  --bg: var(--sky);
+  --surface: var(--mist);
+  --surface-2: #dceaf5;
+  --text: var(--navy);
+  --muted: #4d6b84;
+  --line: rgba(var(--navy-rgb), 0.14);
+  --brand: var(--azure);
+  --brand-deep: #245e88;
   --brand-2: var(--steel);
-  --brand-ink: var(--sand);
-  --good: #5e5b35;
-  --good-bg: rgba(122, 119, 74, 0.2);
-  --ok: #556168;
-  --ok-bg: rgba(161, 175, 184, 0.4);
-  --warn: #665c48;
-  --warn-bg: rgba(72, 63, 41, 0.1);
-  --bad: var(--ink);
-  --bad-bg: rgba(72, 63, 41, 0.2);
+  --brand-ink: var(--mist);
+
+  /* Плотные заливки: тёмный прямоугольник и текст поверх него. */
+  --fill-strong: var(--navy);
+  --on-fill: var(--mist);
+  --fill-strong-hover: var(--azure);
+  --on-fill-hover: var(--mist);
+  --fill-bad: var(--navy);
+  --on-fill-bad: var(--mist);
+  /* Текст на цветных кружках вердиктов. */
+  --on-tone: var(--mist);
+  --knob: var(--mist);
+  --tabbar-bg: var(--steel);
+  --tabbar-active-bg: var(--mist);
+  --tabbar-active-fg: var(--navy);
+  --scrim: rgba(var(--navy-rgb), 0.45);
+
+  --good: #245e88;
+  --good-bg: rgba(var(--azure-rgb), 0.18);
+  --ok: #4a6f8a;
+  --ok-bg: rgba(var(--steel-rgb), 0.42);
+  --warn: var(--amber);
+  --warn-bg: rgba(156, 100, 53, 0.14);
+  --bad: var(--navy);
+  --bad-bg: rgba(var(--navy-rgb), 0.18);
+  /* Текст на светлых подложках вердиктов: в тёмной теме он не темнее, а светлее фона. */
+  --good-text: #1d4d70;
+  --warn-text: #7d4f27;
+  --bad-text: var(--navy);
   --radius: 24px;
   --radius-sm: 16px;
-  --shadow: 0 22px 50px -30px rgba(72, 63, 41, 0.55);
+  --shadow: 0 22px 50px -30px rgba(var(--navy-rgb), 0.5);
   --font-head: 'Lora', Georgia, serif;
   --font-body: 'Manrope', system-ui, sans-serif;
 
-  /* Бейджи активов. Тёмная заливка осталась только у кислот — самой
-     «резкой» группы; ретиноиды и увлажнение ушли в серо-голубой. */
+  /* Бейджи активов: плотная заливка осталась у кислот — самой «резкой» группы. */
   --ico-night-bg: var(--steel);
-  --ico-night-fg: var(--ink);
-  --ico-day-bg: var(--olive);
-  --ico-day-fg: var(--sand);
-  --ico-ok-bg: rgba(161, 175, 184, 0.55);
-  --ico-ok-fg: #3f4b52;
-  --ico-good-bg: rgba(122, 119, 74, 0.24);
-  --ico-good-fg: #4f4c2c;
-  --ico-warn-bg: var(--ink);
-  --ico-warn-fg: var(--sand);
-  --ico-soft-bg: rgba(72, 63, 41, 0.14);
-  --ico-soft-fg: var(--ink);
-  --ico-neutral-bg: rgba(161, 175, 184, 0.3);
-  --ico-neutral-fg: var(--ink);
+  --ico-night-fg: var(--navy);
+  --ico-day-bg: var(--azure);
+  --ico-day-fg: var(--mist);
+  --ico-ok-bg: rgba(var(--steel-rgb), 0.55);
+  --ico-ok-fg: #2f5674;
+  --ico-good-bg: rgba(var(--azure-rgb), 0.2);
+  --ico-good-fg: #235a80;
+  --ico-warn-bg: var(--navy);
+  --ico-warn-fg: var(--mist);
+  --ico-soft-bg: rgba(var(--navy-rgb), 0.14);
+  --ico-soft-fg: var(--navy);
+  --ico-neutral-bg: rgba(var(--steel-rgb), 0.3);
+  --ico-neutral-fg: var(--navy);
 
-  /* Время нанесения: вечер — прохладный, утро — олива. */
-  --pill-night-bg: rgba(161, 175, 184, 0.55);
-  --pill-night-fg: #3f4b52;
-  --pill-day-bg: rgba(122, 119, 74, 0.22);
+  /* Время нанесения: вечер — серо-голубой, утро — лазурь. */
+  --pill-night-bg: rgba(var(--steel-rgb), 0.55);
+  --pill-night-fg: #2f5674;
+  --pill-day-bg: rgba(var(--azure-rgb), 0.18);
   --pill-day-fg: var(--brand-deep);
+
+  --page-bg: radial-gradient(125% 85% at 15% 0%, var(--mist) 0%, var(--sky) 45%, var(--steel) 100%);
+  --glow: rgba(var(--steel-rgb), 0.8);
+}
+
+/* --- Тёмная тема ---
+   Ставится атрибутом на <html> ещё до первой отрисовки (см. index.html),
+   поэтому светлый фон не мигает при загрузке. */
+
+:root[data-theme='dark'] {
+  --mist: #e2eefa;
+  --sky: #16293a;
+  --steel: #5c86a6;
+  --azure: #6fb4e6;
+  --navy: #0c1a26;
+
+  --navy-rgb: 5, 12, 19;
+  --steel-rgb: 111, 149, 179;
+  --azure-rgb: 111, 180, 230;
+  --mist-rgb: 226, 238, 250;
+
+  --bg: #10202e;
+  --surface: #182c3d;
+  --surface-2: #21384b;
+  --text: #dceaf7;
+  --muted: #96b3ca;
+  --line: rgba(var(--steel-rgb), 0.26);
+  --brand: var(--azure);
+  --brand-deep: #93cdf3;
+  --brand-2: var(--steel);
+  --brand-ink: #0c1a26;
+
+  --fill-strong: var(--azure);
+  --on-fill: #0b1926;
+  --fill-strong-hover: #a8d6f5;
+  --on-fill-hover: #0b1926;
+  --fill-bad: #8d3d31;
+  --on-fill-bad: #ffe7e0;
+  --on-tone: #0b1926;
+  --knob: #0b1926;
+  --tabbar-bg: #0c1a26;
+  --tabbar-active-bg: var(--azure);
+  --tabbar-active-fg: #0b1926;
+  --scrim: rgba(2, 8, 14, 0.66);
+
+  --good: #6fb4e6;
+  --good-bg: rgba(var(--azure-rgb), 0.18);
+  --ok: #9dbdd4;
+  --ok-bg: rgba(var(--steel-rgb), 0.24);
+  --warn: #e0a86a;
+  --warn-bg: rgba(224, 168, 106, 0.16);
+  --bad: #f0a294;
+  --bad-bg: rgba(200, 104, 84, 0.2);
+  --good-text: #a8d6f5;
+  --warn-text: #f0c795;
+  --bad-text: #f7bdb1;
+  --shadow: 0 22px 50px -30px rgba(0, 0, 0, 0.9);
+
+  --ico-night-bg: rgba(var(--steel-rgb), 0.35);
+  --ico-night-fg: #cfe4f5;
+  --ico-day-bg: var(--azure);
+  --ico-day-fg: #0b1926;
+  --ico-ok-bg: rgba(var(--steel-rgb), 0.3);
+  --ico-ok-fg: #cfe4f5;
+  --ico-good-bg: rgba(var(--azure-rgb), 0.22);
+  --ico-good-fg: #a8d6f5;
+  --ico-warn-bg: rgba(224, 168, 106, 0.24);
+  --ico-warn-fg: #f0c795;
+  --ico-soft-bg: rgba(var(--mist-rgb), 0.12);
+  --ico-soft-fg: #cfe4f5;
+  --ico-neutral-bg: rgba(var(--steel-rgb), 0.22);
+  --ico-neutral-fg: #cfe4f5;
+
+  --pill-night-bg: rgba(var(--steel-rgb), 0.3);
+  --pill-night-fg: #cfe4f5;
+  --pill-day-bg: rgba(var(--azure-rgb), 0.2);
+  --pill-day-fg: #a8d6f5;
+
+  --page-bg: radial-gradient(125% 85% at 15% 0%, #1c3346 0%, #12232f 45%, #0a151f 100%);
+  --glow: rgba(var(--azure-rgb), 0.22);
 }
 
 body {
-  background: radial-gradient(125% 85% at 15% 0%, var(--sand) 0%, var(--sand-3) 45%, var(--steel) 100%);
+  background: var(--page-bg);
   min-height: 100vh;
 }
 
@@ -91,7 +195,7 @@ body {
   height: 46vmin;
   left: -12vmin;
   top: 8vmin;
-  background: radial-gradient(circle at 30% 30%, rgba(161, 175, 184, 0.75), transparent 70%);
+  background: radial-gradient(circle at 30% 30%, var(--glow), transparent 70%);
 }
 
 .stage__leaf--b {
@@ -99,7 +203,7 @@ body {
   height: 52vmin;
   right: -14vmin;
   bottom: -10vmin;
-  background: radial-gradient(circle at 60% 40%, rgba(161, 175, 184, 0.85), transparent 70%);
+  background: radial-gradient(circle at 60% 40%, var(--glow), transparent 70%);
 }
 
 .phone {
@@ -110,7 +214,7 @@ body {
   grid-template-rows: auto 1fr auto;
   background: var(--bg);
   border-radius: clamp(0px, 4vw, 38px);
-  box-shadow: 0 40px 90px -40px rgba(72, 63, 41, 0.55), 0 0 0 1px rgba(72, 63, 41, 0.08);
+  box-shadow: 0 40px 90px -40px rgba(var(--navy-rgb), 0.55), 0 0 0 1px rgba(var(--navy-rgb), 0.08);
   overflow: hidden;
 }
 
@@ -148,8 +252,8 @@ body {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: var(--olive);
-  color: var(--sand);
+  background: var(--brand);
+  color: var(--brand-ink);
 }
 
 .brand__mark svg {
@@ -269,8 +373,8 @@ body {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  background: var(--olive);
-  color: var(--sand);
+  background: var(--brand);
+  color: var(--brand-ink);
   font-size: 16px;
   flex: none;
 }
@@ -306,9 +410,9 @@ body {
 }
 
 .chip.is-on {
-  background: var(--steel);
-  border-color: var(--steel);
-  color: var(--ink);
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-ink);
 }
 
 .chip.is-on .sl-uico {
@@ -350,8 +454,8 @@ body {
   overflow: hidden;
   padding: 20px;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--ink), var(--olive) 60%, var(--steel));
-  color: var(--sand);
+  background: linear-gradient(135deg, var(--navy), var(--azure) 60%, var(--steel));
+  color: var(--mist);
   display: grid;
   gap: 10px;
 }
@@ -373,8 +477,8 @@ body {
   justify-self: start;
   padding: 10px 18px;
   border-radius: 99px;
-  background: var(--sand);
-  color: var(--ink);
+  background: var(--mist);
+  color: var(--navy);
   font-weight: 700;
   font-size: 13px;
 }
@@ -386,7 +490,7 @@ body {
   right: -50px;
   top: -70px;
   border-radius: 50%;
-  background: rgba(223, 215, 199, 0.22);
+  background: rgba(var(--mist-rgb), 0.22);
 }
 
 .mini-row {
@@ -434,16 +538,17 @@ body {
 .btn-primary {
   padding: 14px 20px;
   border-radius: 99px;
-  background: var(--ink);
-  color: var(--sand);
+  background: var(--fill-strong);
+  color: var(--on-fill);
   font-weight: 700;
   font-size: 14.5px;
-  box-shadow: 0 14px 30px -18px var(--ink);
+  box-shadow: 0 14px 30px -18px rgba(var(--navy-rgb), 0.9);
   transition: background 0.2s;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--olive);
+  background: var(--fill-strong-hover);
+  color: var(--on-fill-hover);
 }
 
 .btn-primary:disabled {
@@ -713,34 +818,34 @@ body {
 }
 
 /* «Не вместе» — единственный запрещающий блок, поэтому шапка залита целиком:
-   в четырёхцветной палитре это надёжнее, чем оттенок рамки. */
+   в сдержанной палитре это надёжнее, чем оттенок рамки. */
 
 .bucket--bad {
   border-left-width: 6px;
 }
 
 .bucket--bad .bucket__head {
-  background: var(--ink);
-  color: var(--sand);
+  background: var(--fill-bad);
+  color: var(--on-fill-bad);
 }
 
 .bucket--bad .bucket__head p,
 .bucket--bad .bucket__count {
-  color: color-mix(in srgb, var(--sand) 72%, transparent);
+  color: color-mix(in srgb, var(--on-fill-bad) 72%, transparent);
 }
 
 .bucket--bad .bucket__icon {
-  background: var(--sand);
-  color: var(--ink);
+  background: var(--on-fill-bad);
+  color: var(--fill-bad);
 }
 
 .bucket--bad .sl-tipbtn {
   background: transparent;
-  border-color: color-mix(in srgb, var(--sand) 45%, transparent);
+  border-color: color-mix(in srgb, var(--on-fill-bad) 45%, transparent);
 }
 
 .bucket--bad .sl-tipbtn__mark {
-  color: var(--sand);
+  color: var(--on-fill-bad);
 }
 
 .bucket__list {
@@ -819,28 +924,33 @@ body {
 }
 .verdict--good .verdict__icon {
   background: var(--good);
-  color: var(--sand);
+  color: var(--on-tone);
 }
 .verdict--ok {
   background: var(--ok-bg);
 }
 .verdict--ok .verdict__icon {
   background: var(--ok);
-  color: var(--sand);
+  color: var(--on-tone);
 }
 .verdict--warn {
   background: var(--warn-bg);
 }
 .verdict--warn .verdict__icon {
   background: var(--warn);
-  color: var(--sand);
+  color: var(--on-tone);
 }
 .verdict--bad {
-  background: var(--bad-bg);
+  background: var(--bad);
+  color: var(--on-tone);
+}
+.verdict--bad h2,
+.verdict--bad p {
+  color: inherit;
 }
 .verdict--bad .verdict__icon {
-  background: var(--bad);
-  color: var(--sand);
+  background: var(--on-tone);
+  color: var(--bad);
 }
 
 /* Недельный план */
@@ -1031,7 +1141,7 @@ body {
 
 .note--good {
   background: var(--good-bg);
-  color: color-mix(in srgb, var(--good) 80%, #000);
+  color: var(--good-text);
 }
 
 .note--ok {
@@ -1040,12 +1150,12 @@ body {
 
 .note--warn {
   background: var(--warn-bg);
-  color: color-mix(in srgb, var(--warn) 80%, #000);
+  color: var(--warn-text);
 }
 
 .note--bad {
   background: var(--bad-bg);
-  color: color-mix(in srgb, var(--bad) 85%, #000);
+  color: var(--bad-text);
   font-weight: 600;
 }
 
@@ -1096,8 +1206,8 @@ body {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--sand);
-  box-shadow: 0 2px 6px rgba(72, 63, 41, 0.28);
+  background: var(--knob);
+  box-shadow: 0 2px 6px rgba(var(--navy-rgb), 0.28);
   transition: transform 0.25s var(--ease);
 }
 
@@ -1143,21 +1253,22 @@ body {
 
 .tabbar {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
-  padding: 8px 10px;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  padding: 8px 8px;
   padding-bottom: max(8px, env(safe-area-inset-bottom));
-  background: var(--steel);
-  border-top: 1px solid rgba(72, 63, 41, 0.12);
+  background: var(--tabbar-bg);
+  border-top: 1px solid rgba(var(--navy-rgb), 0.12);
 }
 
 .tabbar button {
   display: grid;
   justify-items: center;
   gap: 5px;
-  padding: 8px 4px 9px;
+  padding: 8px 2px 9px;
   border-radius: 16px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.01em;
   color: var(--muted);
@@ -1183,12 +1294,12 @@ body {
 }
 
 .tabbar button.is-active {
-  color: var(--ink);
+  color: var(--tabbar-active-fg);
 }
 
 .tabbar button.is-active .tabbar__ico {
-  background: var(--sand);
-  color: var(--ink);
+  background: var(--tabbar-active-bg);
+  color: var(--tabbar-active-fg);
 }
 
 /* --- Шторка с карточкой --- */
@@ -1208,7 +1319,7 @@ body {
 .sheet__scrim {
   position: absolute;
   inset: 0;
-  background: rgba(72, 63, 41, 0.45);
+  background: var(--scrim);
   backdrop-filter: blur(3px);
   animation: fade 0.3s ease both;
 }
@@ -1227,7 +1338,7 @@ body {
   background: var(--bg);
   border-radius: 30px 30px 0 0;
   padding: 26px 22px calc(30px + env(safe-area-inset-bottom));
-  box-shadow: 0 -20px 60px -30px rgba(72, 63, 41, 0.6);
+  box-shadow: 0 -20px 60px -30px rgba(var(--navy-rgb), 0.6);
   animation: slideup 0.42s var(--ease) both;
 }
 
@@ -1271,8 +1382,8 @@ body {
   left: 50%;
   bottom: 92px;
   transform: translate(-50%, 20px);
-  background: var(--ink);
-  color: var(--sand);
+  background: var(--fill-strong);
+  color: var(--on-fill);
   padding: 11px 18px;
   border-radius: 99px;
   font-size: 13.5px;
@@ -1314,8 +1425,8 @@ body {
   align-items: flex-start;
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, rgba(161, 175, 184, 0.5), rgba(122, 119, 74, 0.18));
-  border: 1px solid rgba(161, 175, 184, 0.7);
+  background: linear-gradient(135deg, rgba(var(--steel-rgb), 0.45), rgba(var(--azure-rgb), 0.18));
+  border: 1px solid rgba(var(--steel-rgb), 0.6);
 }
 
 .coach p {
@@ -1480,8 +1591,8 @@ body {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(161, 175, 184, 0.55);
-  color: var(--ink);
+  background: rgba(var(--steel-rgb), 0.45);
+  color: var(--brand-deep);
 }
 
 .help-link:hover {
@@ -1512,7 +1623,7 @@ body {
 .overlay__scrim {
   position: absolute;
   inset: 0;
-  background: rgba(72, 63, 41, 0.5);
+  background: var(--scrim);
   backdrop-filter: blur(2px);
   animation: fade 0.25s var(--ease) both;
 }
@@ -1525,7 +1636,7 @@ body {
   background: var(--bg);
   border-radius: 28px 28px 0 0;
   padding: 28px 22px calc(28px + env(safe-area-inset-bottom));
-  box-shadow: 0 -24px 60px -30px rgba(72, 63, 41, 0.55);
+  box-shadow: 0 -24px 60px -30px rgba(var(--navy-rgb), 0.55);
   animation: slideup 0.42s var(--ease) both;
 }
 
@@ -1566,8 +1677,8 @@ body {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(161, 175, 184, 0.55);
-  color: var(--ink);
+  background: rgba(var(--steel-rgb), 0.45);
+  color: var(--brand-deep);
 }
 
 .onboard h2,
@@ -1636,8 +1747,8 @@ body {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: rgba(161, 175, 184, 0.55);
-  color: var(--ink);
+  background: rgba(var(--steel-rgb), 0.45);
+  color: var(--brand-deep);
 }
 
 .help__steps b {
@@ -1684,7 +1795,7 @@ body {
 .quiz__opt:hover,
 .quiz__opt.is-on {
   border-color: var(--brand);
-  background: rgba(122, 119, 74, 0.16);
+  background: rgba(var(--azure-rgb), 0.14);
 }
 
 .bucket__head h2 {
@@ -1699,8 +1810,336 @@ body {
 .sl-list--steps li::before,
 .sl-apply__num,
 .sl-shelf-btn[aria-pressed='true'] {
-  background: var(--ink);
-  color: var(--sand);
+  background: var(--fill-strong);
+  color: var(--on-fill);
+}
+
+/* --- Идеальный уход --- */
+
+.setup {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.setup__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.setup__head b {
+  font-family: var(--font-head);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.setup__block {
+  display: grid;
+  gap: 8px;
+}
+
+.setup__label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.setup__switches {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.setup__switch {
+  padding: 11px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.setup__switch::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--muted);
+  vertical-align: baseline;
+}
+
+.setup__switch.is-on {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--brand-ink);
+}
+
+.setup__switch.is-on::before {
+  background: var(--brand-ink);
+  border-color: var(--brand-ink);
+}
+
+.routine-cols {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .routine-cols {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.routine {
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  overflow: hidden;
+}
+
+.routine__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 16px;
+  background: var(--surface-2);
+  font-family: var(--font-head);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.routine__list {
+  display: grid;
+}
+
+.routine__step {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 12px;
+  padding: 13px 16px;
+}
+
+.routine__step + .routine__step {
+  border-top: 1px solid var(--line);
+}
+
+.routine__step.is-required {
+  background: var(--good-bg);
+}
+
+.routine__num {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-2);
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.routine__step.is-required .routine__num {
+  background: var(--fill-strong);
+  color: var(--on-fill);
+}
+
+.routine__body {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.routine__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.routine__head b {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.routine__glyph {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(var(--steel-rgb), 0.45);
+  color: var(--brand-deep);
+}
+
+.routine__badge {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 99px;
+  background: var(--fill-strong);
+  color: var(--on-fill);
+}
+
+.routine__badge--soft {
+  background: var(--surface-2);
+  color: var(--muted);
+}
+
+.routine__freq {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--brand-deep);
+  white-space: nowrap;
+}
+
+.routine__body p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.routine__warn {
+  color: var(--warn-text) !important;
+  font-weight: 600;
+}
+
+.routine__body .linkish {
+  justify-self: start;
+  font-size: 12px;
+}
+
+.ideal-cta {
+  display: grid;
+  gap: 8px;
+}
+
+.ideal-cta .btn-primary:disabled {
+  opacity: 0.7;
+}
+
+.excluded {
+  display: grid;
+  gap: 8px;
+}
+
+.excluded__row {
+  display: grid;
+  gap: 3px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--line);
+  text-align: left;
+}
+
+.excluded__row--bad {
+  border-left-color: var(--bad);
+}
+
+.excluded__row--warn {
+  border-left-color: var(--warn);
+}
+
+.excluded__row--ok {
+  border-left-color: var(--ok);
+}
+
+.excluded__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.excluded__why {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* --- Увлажнение --- */
+
+.hydration {
+  display: grid;
+  gap: 10px;
+}
+
+.hydration__part {
+  padding: 13px 15px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.hydration__part b {
+  font-size: 14.5px;
+}
+
+.hydration__part i {
+  display: block;
+  font-style: normal;
+  font-size: 11.5px;
+  color: var(--brand-deep);
+  margin: 2px 0 6px;
+}
+
+.hydration__part p {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* --- Переключатель темы --- */
+
+.theme-seg {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 5px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.theme-seg__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 8px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  transition: background 0.2s, color 0.2s;
+}
+
+.theme-seg__btn.is-on {
+  background: var(--fill-strong);
+  color: var(--on-fill);
+}
+
+#themeBtn .sl-uico {
+  display: block;
 }
 
 

@@ -1,23 +1,35 @@
-/* Service worker: оболочка приложения работает офлайн. */
-const VERSION = 'skinlab-v7';
+/* Service worker: оболочка приложения работает офлайн.
+   Пути считаются от scope (корень сайта) — так один и тот же SW
+   работает и локально на /, и на GitHub Pages в /skinlab/. */
+const VERSION = 'skinlab-v9';
+
+const BASE = self.registration.scope;
+const asset = (path) => new URL(path.replace(/^\//, ''), BASE).href;
+
 const SHELL = [
-  '/',
-  '/index.html',
-  '/shared/base.css',
-  '/assets/fonts/fonts.css',
-  '/shared/data.js',
-  '/shared/engine.js',
-  '/shared/content.js',
-  '/shared/schedule.js',
-  '/shared/pwa.js',
-  '/shared/icons.js',
-  '/shared/quiz.js',
-  '/shared/guide.js',
-  '/shared/hscroll.js',
-  '/manifest.webmanifest',
-  '/assets/icon-192.png',
-  '/assets/icon-512.png',
-];
+  '',
+  'index.html',
+  'shared/base.css',
+  'assets/fonts/fonts.css',
+  'shared/data.js',
+  'shared/engine.js',
+  'shared/content.js',
+  'shared/schedule.js',
+  'shared/pwa.js',
+  'shared/icons.js',
+  'shared/quiz.js',
+  'shared/guide.js',
+  'shared/hscroll.js',
+  'shared/ideal.js',
+  'shared/theme.js',
+  'manifest.webmanifest',
+  'assets/icon-192.png',
+  'assets/icon-512.png',
+  'm1-botanica/',
+  'm1-botanica/index.html',
+  'm1-botanica/theme.css',
+  'm1-botanica/app.js',
+].map(asset);
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -50,7 +62,9 @@ self.addEventListener('fetch', (event) => {
           caches.open(VERSION).then((c) => c.put(request, copy));
           return res;
         })
-        .catch(() => caches.match(request).then((r) => r || caches.match('/index.html')))
+        .catch(() =>
+          caches.match(request).then((r) => r || caches.match(asset('index.html')))
+        )
     );
     return;
   }

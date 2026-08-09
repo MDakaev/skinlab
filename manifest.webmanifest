@@ -4,20 +4,21 @@
   "description": "Что с чем сочетается в уходе за кожей, что нельзя наносить вместе и как разложить активы по дням недели.",
   "lang": "ru",
   "dir": "ltr",
-  "start_url": "/m1-botanica/?tab=pairs",
-  "scope": "/",
+  "start_url": "./m1-botanica/?tab=pairs",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#dfd7c7",
-  "theme_color": "#7a774a",
+  "background_color": "#eef5fb",
+  "theme_color": "#cfe3f2",
   "categories": ["health", "lifestyle", "beauty"],
   "icons": [
-    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "./assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "./assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Что с чем сочетать", "short_name": "Сочетания", "url": "/m1-botanica/?tab=pairs" },
-    { "name": "Мой уход на неделю", "short_name": "Мой уход", "url": "/m1-botanica/?tab=plan" }
+    { "name": "Что с чем сочетать", "short_name": "Сочетания", "url": "./m1-botanica/?tab=pairs" },
+    { "name": "Идеальный уход", "short_name": "Идеал", "url": "./m1-botanica/?tab=ideal" },
+    { "name": "Мой уход на неделю", "short_name": "Мой уход", "url": "./m1-botanica/?tab=plan" }
   ]
 }

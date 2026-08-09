@@ -11,10 +11,10 @@ import {
   loadProfile,
   saveProfile,
   toggleShelf,
-} from '/shared/engine.js';
-import { productCard, activeDetail, comboResult, routineView, esc } from '/shared/content.js';
-import { registerSW, setupInstall } from '/shared/pwa.js';
-import { enhanceHScroll } from '/shared/hscroll.js';
+} from '../shared/engine.js';
+import { productCard, activeDetail, comboResult, routineView, esc } from '../shared/content.js';
+import { registerSW, setupInstall } from '../shared/pwa.js';
+import { enhanceHScroll } from '../shared/hscroll.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];

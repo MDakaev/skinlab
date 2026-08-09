@@ -124,6 +124,8 @@ const defaults = {
   quizAnswers: {},
   /** Скрытые подсказки интерфейса (id → true). */
   dismissedTips: {},
+  /** Оформление: 'auto' следует за системной темой. */
+  theme: 'auto',
 };
 
 export function loadProfile() {
