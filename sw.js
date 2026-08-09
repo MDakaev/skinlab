@@ -1,7 +1,7 @@
 /* Service worker: оболочка приложения работает офлайн.
    Пути считаются от scope (корень сайта) — так один и тот же SW
    работает и локально на /, и на GitHub Pages в /skinlab/. */
-const VERSION = 'skinlab-v9';
+const VERSION = 'skinlab-v10';
 
 const BASE = self.registration.scope;
 const asset = (path) => new URL(path.replace(/^\//, ''), BASE).href;
@@ -62,8 +62,10 @@ self.addEventListener('fetch', (event) => {
           caches.open(VERSION).then((c) => c.put(request, copy));
           return res;
         })
+        // Запасной вариант — само приложение, а не редирект из корня:
+        // офлайн лишний переход просто не на чем выполнить.
         .catch(() =>
-          caches.match(request).then((r) => r || caches.match(asset('index.html')))
+          caches.match(request).then((r) => r || caches.match(asset('m1-botanica/index.html')))
         )
     );
     return;
