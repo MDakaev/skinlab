@@ -1,0 +1,23 @@
+{
+  "name": "cosmetics-consulting",
+  "version": "0.2.0",
+  "private": true,
+  "type": "module",
+  "description": "SkinLab — справочник уход-активов: PWA + API каталога косметики",
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "start": "node server/src/server.js",
+    "dev": "node --watch server/src/server.js",
+    "web": "./start.sh",
+    "seed": "node server/scripts/seed-demo.js",
+    "import:obf": "node server/scripts/import-obf.js",
+    "smoke": "node server/scripts/smoke.js"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "better-sqlite3": "^13.0.3",
+    "fastify": "^5.11.3"
+  }
+}

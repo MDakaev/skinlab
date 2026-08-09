@@ -626,6 +626,42 @@ canvas {
   opacity: 0.8;
 }
 
+.sl-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sl-badge--drug {
+  color: #fff;
+  background: #b4322b;
+}
+
+.sl-sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sl-source {
+  color: var(--brand);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 40%, transparent);
+  overflow-wrap: anywhere;
+}
+
+.sl-source:hover {
+  border-bottom-color: var(--brand);
+}
+
 /* ---------- Совместимость ---------- */
 
 .sl-verdict {

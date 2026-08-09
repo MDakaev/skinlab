@@ -1,8 +1,18 @@
 /**
- * Камера для «распознавания» косметики.
- * Реального распознавания нет: превью настоящее, результат — заглушка из каталога.
+ * ОТЛОЖЕНО — не подключать к прод-приложению. См. ./README.md
+ *
+ * Камера для будущего распознавания косметики. Превью и снимок кадра здесь настоящие,
+ * а вот `mockRecognize` — заглушка на случайных демо-данных: именно из-за неё модуль
+ * снят с прода. Перед возвратом заменить заглушку на разбор штрихкода или OCR состава.
  */
-import { mockRecognize } from './engine.js';
+import { PRODUCTS } from '/shared/engine.js';
+
+/** Заглушка распознавания: имитирует задержку и возвращает случайный товар из каталога. */
+function mockRecognize() {
+  const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+  const confidence = 0.72 + Math.random() * 0.26;
+  return new Promise((resolve) => setTimeout(() => resolve({ product, confidence }), 1400 + Math.random() * 900));
+}
 
 export function createScanner({ video, canvas, onStatus = () => {}, onResult = () => {} }) {
   let stream = null;

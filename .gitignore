@@ -2,3 +2,10 @@
 .DS_Store
 node_modules/
 *.log
+
+# backend
+data/
+*.db
+*.db-shm
+*.db-wal
+package-lock.json

@@ -14,7 +14,6 @@ import {
   LEVELS,
 } from '/shared/engine.js';
 import { activeDetail, comboResult, routineView, esc } from '/shared/content.js';
-import { createScanner } from '/shared/scanner.js';
 import { registerSW, setupInstall } from '/shared/pwa.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -31,10 +30,7 @@ const state = {
   concern: null,
   mix: [],
   profile: loadProfile(),
-  scan: null,
 };
-
-let scanner = null;
 
 function toast(text) {
   toastEl.textContent = text;
@@ -76,15 +72,14 @@ function homePage() {
 
       <div class="search-line">
         <input id="q" type="search" value="${esc(state.query)}" placeholder="Ретинол, ниацинамид, CeraVe…" aria-label="Поиск" />
-        <button data-goto="scan">Сканировать</button>
+        <button data-goto="mix">Проверить сочетание</button>
       </div>
 
       <div class="rule"></div>
 
       <div class="tiles">
         <button class="tile" data-goto="catalog"><em>Раздел 02</em><b>Указатель</b><span>Все активы с профилем действия, противопоказаниями и сочетаниями.</span></button>
-        <button class="tile" data-goto="scan"><em>Раздел 03</em><b>Сканер</b><span>Наведите камеру на упаковку — состав разберём за вас.</span></button>
-        <button class="tile" data-goto="mix"><em>Раздел 04</em><b>Сочетания</b><span>Проверьте, не конфликтуют ли средства в одной рутине.</span></button>
+        <button class="tile" data-goto="mix"><em>Раздел 03</em><b>Сочетания</b><span>Проверьте, не конфликтуют ли средства в одной рутине.</span></button>
       </div>
 
       <div class="rule"></div>
@@ -130,7 +125,7 @@ function catalogPage() {
 
       <div class="search-line">
         <input id="q" type="search" value="${esc(state.query)}" placeholder="Название актива или средства" aria-label="Поиск" />
-        <button data-goto="scan">Сканировать</button>
+        <button data-goto="mix">Проверить сочетание</button>
       </div>
 
       <div class="rule"></div>
@@ -174,49 +169,6 @@ function articlePage() {
       <div class="btn-row">
         <button class="btn" data-add="${a.id}">Добавить в проверку сочетаний</button>
         <button class="btn btn--light" data-goto="catalog">К другим активам</button>
-      </div>
-    </div>`;
-}
-
-function scanPage() {
-  const r = state.scan;
-  return `
-    <div class="page">
-      <p class="kicker">Раздел 03</p>
-      <h1 class="display">Сканер упаковки</h1>
-      <p class="standfirst">Наведите камеру на состав средства. Распознавание ещё не подключено — сейчас это демонстрация будущего сценария.</p>
-      <div class="rule"></div>
-
-      <div class="scan-grid">
-        <div class="sl-scan-stage" id="stage">
-          <video id="video" playsinline muted></video>
-          <canvas id="canvas" hidden></canvas>
-          <div class="sl-scan-frame"></div>
-          <div class="sl-scan-hint" id="hint">Камера выключена</div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn" id="shot">Сделать снимок</button>
-          <button class="btn btn--light" id="pickFile">Загрузить фото</button>
-          <input type="file" id="file" accept="image/*" capture="environment" hidden />
-        </div>
-
-        ${
-          r
-            ? `<div class="result">
-                <div class="result__top">
-                  ${r.frame ? `<img class="result__shot" src="${r.frame}" alt="Кадр" />` : '<div class="result__shot"></div>'}
-                  <div>
-                    <p class="result__meta">${esc(r.product.brand)} · ${esc(r.product.type)}</p>
-                    <p class="result__name">${esc(r.product.name)}</p>
-                    <p class="result__meta">Совпадение ${Math.round(r.confidence * 100)}% · демо-данные</p>
-                  </div>
-                </div>
-                ${indexRows(r.product.actives.map(getActive))}
-                <button class="btn btn--light" data-add-all='${JSON.stringify(r.product.actives)}'>Проверить сочетание состава</button>
-              </div>`
-            : ''
-        }
       </div>
     </div>`;
 }
@@ -290,17 +242,14 @@ function renderRail() {
 
 /* ---------------- Рендер ---------------- */
 
-const PAGES = { home: homePage, catalog: catalogPage, scan: scanPage, mix: mixPage, detail: articlePage };
+const PAGES = { home: homePage, catalog: catalogPage, mix: mixPage, detail: articlePage };
 
 function render({ keepScroll = false } = {}) {
   const top = window.scrollY;
-  scanner?.stop();
-  scanner = null;
   view.innerHTML = PAGES[state.tab]();
   $$('#nav button').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === state.tab));
   renderRail();
   window.scrollTo({ top: keepScroll ? top : 0 });
-  if (state.tab === 'scan') initScanner();
   syncShelfButtons();
 }
 
@@ -321,28 +270,6 @@ function openDetail(id) {
 
 function syncShelfButtons() {
   $$('[data-shelf]').forEach((b) => b.setAttribute('aria-pressed', String(state.profile.shelf.includes(b.dataset.shelf))));
-}
-
-function initScanner() {
-  const stage = $('#stage');
-  scanner = createScanner({
-    video: $('#video'),
-    canvas: $('#canvas'),
-    onStatus: (kind, text) => {
-      $('#hint').textContent = text;
-      stage.classList.toggle('is-scanning', kind === 'scanning');
-      $('#shot').disabled = kind === 'scanning' || kind === 'loading';
-    },
-    onResult: (res) => {
-      state.scan = res;
-      render();
-      toast('Демо-распознавание: подставлен товар из тестового каталога');
-    },
-  });
-  scanner.start();
-  $('#shot').addEventListener('click', () => scanner.capture());
-  $('#pickFile').addEventListener('click', () => $('#file').click());
-  $('#file').addEventListener('change', (e) => scanner.fromFile(e.target.files[0]));
 }
 
 /* ---------------- События ---------------- */
