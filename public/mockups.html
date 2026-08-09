@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SkinLab — четыре макета</title>
+    <meta name="description" content="Прототип справочника уход-активов: выберите один из четырёх вариантов дизайна." />
+    <meta name="theme-color" content="#cfe3f2" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="icon" href="./assets/favicon-64.png" />
+    <link rel="stylesheet" href="./assets/fonts/fonts.css" />
+    <style>
+      :root {
+        --ink: #16334a;
+        --muted: #4d6b84;
+        --line: rgba(22, 51, 74, 0.14);
+        --brand: #2f6d9e;
+        --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        font-family: 'Inter', system-ui, sans-serif;
+        color: var(--ink);
+        background: #eef5fb;
+        background-image: radial-gradient(60vmax 40vmax at 12% -8%, #cfe3f2 0%, transparent 60%),
+          radial-gradient(50vmax 40vmax at 92% 6%, #dbe9f6 0%, transparent 60%),
+          radial-gradient(50vmax 40vmax at 60% 100%, #c7ddee 0%, transparent 60%);
+        padding: clamp(24px, 5vw, 64px);
+      }
+
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+      }
+
+      .kicker {
+        font-size: 11px;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: var(--brand);
+        font-weight: 600;
+      }
+
+      h1 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: clamp(34px, 6vw, 62px);
+        line-height: 1.03;
+        letter-spacing: -0.035em;
+        margin: 14px 0 16px;
+        max-width: 16ch;
+      }
+
+      .lead {
+        font-size: clamp(15px, 1.5vw, 18px);
+        color: var(--muted);
+        max-width: 62ch;
+        line-height: 1.6;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 20px;
+        margin: 44px 0 36px;
+      }
+
+      .card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        border-radius: 26px;
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid var(--line);
+        box-shadow: 0 24px 50px -34px rgba(40, 30, 60, 0.6);
+        transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease);
+      }
+
+      .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 34px 60px -30px rgba(40, 30, 60, 0.55);
+      }
+
+      .card__preview {
+        height: 172px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      .card__phone {
+        width: 108px;
+        height: 132px;
+        border-radius: 16px;
+        padding: 10px 9px;
+        display: grid;
+        gap: 6px;
+        align-content: start;
+        box-shadow: 0 16px 30px -18px rgba(0, 0, 0, 0.6);
+      }
+
+      .bar {
+        height: 7px;
+        border-radius: 99px;
+      }
+
+      .blk {
+        height: 26px;
+        border-radius: 8px;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 5px;
+      }
+
+      /* 1 — Botanica */
+      .p1 {
+        background: linear-gradient(140deg, #dbe9f6, #eef5fb);
+      }
+      .p1 .card__phone {
+        background: #f7fbfe;
+      }
+      .p1 .bar {
+        background: #2f6d9e;
+      }
+      .p1 .bar.b2 {
+        background: #9dbdd4;
+        width: 60%;
+      }
+      .p1 .blk {
+        background: #dceaf5;
+      }
+
+      /* 2 — Editorial */
+      .p2 {
+        background: linear-gradient(140deg, #f4f1ea, #ece7dd);
+      }
+      .p2 .card__phone {
+        background: #fdfbf7;
+        border: 1px solid #ddd6c9;
+      }
+      .p2 .bar {
+        background: #16130f;
+      }
+      .p2 .bar.b2 {
+        background: #a6432b;
+        width: 45%;
+      }
+      .p2 .blk {
+        background: transparent;
+        border-top: 1px solid #d8d1c4;
+        border-bottom: 1px solid #d8d1c4;
+        height: 22px;
+      }
+
+      /* 3 — Noir */
+      .p3 {
+        background: linear-gradient(140deg, #14121f, #241a33);
+      }
+      .p3 .card__phone {
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(6px);
+      }
+      .p3 .bar {
+        background: linear-gradient(90deg, #ff86bd, #8f7bff);
+      }
+      .p3 .bar.b2 {
+        background: rgba(255, 255, 255, 0.35);
+        width: 55%;
+      }
+      .p3 .blk {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      /* 4 — Bubble */
+      .p4 {
+        background: linear-gradient(140deg, #f6ecff, #ffe7f1);
+      }
+      .p4 .card__phone {
+        background: #fff;
+        border-radius: 22px;
+      }
+      .p4 .bar {
+        background: linear-gradient(90deg, #a06bff, #ff9ec4);
+        height: 9px;
+      }
+      .p4 .bar.b2 {
+        background: #ecdcff;
+        width: 50%;
+      }
+      .p4 .blk {
+        background: #f5eeff;
+        border-radius: 14px;
+      }
+
+      .card__body {
+        padding: 20px 22px 24px;
+      }
+
+      .card__num {
+        font-size: 11px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .card__title {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 25px;
+        letter-spacing: -0.02em;
+        margin: 6px 0 8px;
+      }
+
+      .card__text {
+        font-size: 13.5px;
+        line-height: 1.55;
+        color: var(--muted);
+        margin: 0 0 14px;
+      }
+
+      .card__tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .tag {
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 99px;
+        background: #e3eef8;
+        color: var(--muted);
+      }
+
+      .facts {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+        gap: 18px;
+        padding-top: 28px;
+        border-top: 1px solid var(--line);
+      }
+
+      .fact b {
+        display: block;
+        font-size: 14px;
+        margin-bottom: 4px;
+      }
+
+      .fact span {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      footer {
+        margin-top: 36px;
+        font-size: 12.5px;
+        color: var(--muted);
+      }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 28px;
+        padding: 16px 26px;
+        border-radius: 99px;
+        background: var(--brand);
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 15.5px;
+        box-shadow: 0 20px 40px -22px rgba(47, 109, 158, 0.9);
+        transition: transform 0.3s var(--ease);
+      }
+
+      .cta:hover {
+        transform: translateY(-2px);
+      }
+
+      .archive-head {
+        margin: 52px 0 0;
+        padding-top: 28px;
+        border-top: 1px solid var(--line);
+      }
+
+      .archive-head h2 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 24px;
+        letter-spacing: -0.02em;
+      }
+
+      .archive-head p {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin-top: 8px;
+        max-width: 60ch;
+        line-height: 1.55;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <p class="kicker">Сервис сочетаний</p>
+      <h1>Что с чем сочетать в уходе за кожей</h1>
+      <p class="lead">
+        Выбираете активный ингредиент — видите, с чем его можно наносить вместе, а что развести
+        по разным вечерам. Добавляете свои средства — получаете расписание на неделю, в котором
+        конфликтующие активы не пересекаются. Пары не придумываются: если у сочетания нет
+        подтверждения в источниках, его в приложении не будет.
+      </p>
+
+      <a class="cta" href="./m1-botanica/?tab=pairs">Открыть приложение →</a>
+
+      <div class="facts" style="margin-top: 44px">
+        <div class="fact"><b>Сочетания по группам</b><span>Отличная пара, совместимы, осторожно, не вместе — с объяснением причины.</span></div>
+        <div class="fact"><b>Идеальный уход</b><span>Готовая рутина на утро и вечер под тип кожи и задачи, с частотой у каждого шага.</span></div>
+        <div class="fact"><b>Неделя без конфликтов</b><span>Расписание само разводит активы по времени суток и по дням.</span></div>
+        <div class="fact"><b>Личные предупреждения</b><span>Учитываем тип кожи и беременность, а не выдаём общий совет всем.</span></div>
+      </div>
+
+      <div class="archive-head">
+        <h2>Архив вариантов дизайна</h2>
+        <p>
+          Ранние визуальные решения того же продукта. Оставлены для истории: рабочая версия —
+          Botanica, остальные не развиваются.
+        </p>
+      </div>
+
+      <div class="grid">
+        <a class="card" href="./m2-editorial/">
+          <div class="card__preview p2">
+            <div class="card__phone">
+              <div class="bar"></div>
+              <div class="bar b2"></div>
+              <div class="blk"></div>
+              <div class="blk"></div>
+            </div>
+          </div>
+          <div class="card__body">
+            <p class="card__num">Макет 02</p>
+            <h2 class="card__title">Editorial</h2>
+            <p class="card__text">Журнальная вёрстка: крупная типографика, тонкие линейки, боковое оглавление и колонка с набором.</p>
+            <div class="card__tags"><span class="tag">десктоп</span><span class="tag">типографика</span><span class="tag">минимализм</span></div>
+          </div>
+        </a>
+
+        <a class="card" href="./m3-noir/">
+          <div class="card__preview p3">
+            <div class="card__phone">
+              <div class="bar"></div>
+              <div class="bar b2"></div>
+              <div class="blk"></div>
+              <div class="row"><div class="blk"></div><div class="blk"></div></div>
+            </div>
+          </div>
+          <div class="card__body">
+            <p class="card__num">Макет 03</p>
+            <h2 class="card__title">Noir Glow</h2>
+            <p class="card__text">Тёмная тема со стеклянными карточками, градиентным свечением и горизонтальными каруселями.</p>
+            <div class="card__tags"><span class="tag">тёмная тема</span><span class="tag">стекло</span><span class="tag">градиенты</span></div>
+          </div>
+        </a>
+
+        <a class="card" href="./m4-bubble/">
+          <div class="card__preview p4">
+            <div class="card__phone">
+              <div class="bar"></div>
+              <div class="bar b2"></div>
+              <div class="row"><div class="blk"></div><div class="blk"></div></div>
+              <div class="row"><div class="blk"></div><div class="blk"></div></div>
+            </div>
+          </div>
+          <div class="card__body">
+            <p class="card__num">Макет 04</p>
+            <h2 class="card__title">Bubble</h2>
+            <p class="card__text">Дружелюбный интерфейс: округлые пузырьки активов, яркий пастельный градиент, крупные элементы.</p>
+            <div class="card__tags"><span class="tag">пузырьки</span><span class="tag">яркий</span><span class="tag">простой</span></div>
+          </div>
+        </a>
+      </div>
+
+      <footer>Информация носит справочный характер и не заменяет консультацию дерматолога.</footer>
+    </div>
+  </body>
+</html>
