@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SkinLab · Botanica</title>
+    <meta name="description" content="Справочник уход-активов: применение, противопоказания, сочетания и типы кожи." />
+    <meta name="theme-color" content="#7E9A80" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+    <link rel="icon" href="/assets/favicon-64.png" />
+    <link rel="stylesheet" href="/assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="/shared/base.css" />
+    <link rel="stylesheet" href="./theme.css" />
+  </head>
+  <body>
+    <div class="stage">
+      <div class="stage__leaf stage__leaf--a" aria-hidden="true"></div>
+      <div class="stage__leaf stage__leaf--b" aria-hidden="true"></div>
+
+      <div class="phone">
+        <header class="topbar">
+          <a class="brand" href="/">
+            <span class="brand__mark">◍</span>
+            <span>
+              <b>SkinLab</b>
+              <i>botanica</i>
+            </span>
+          </a>
+          <button class="ghost-btn" id="install" hidden>Установить</button>
+        </header>
+
+        <main class="view" id="view" tabindex="-1"></main>
+
+        <nav class="tabbar" id="tabbar" aria-label="Разделы">
+          <button data-tab="home" class="is-active"><span>🏡</span>Главная</button>
+          <button data-tab="catalog"><span>📖</span>Активы</button>
+          <button data-tab="scan"><span>📷</span>Сканер</button>
+          <button data-tab="mix"><span>🧪</span>Пара</button>
+        </nav>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet" hidden>
+      <div class="sheet__scrim" data-close></div>
+      <section class="sheet__panel" role="dialog" aria-modal="true" aria-label="Карточка актива">
+        <button class="sheet__close" data-close aria-label="Закрыть">✕</button>
+        <div class="sheet__body" id="sheetBody"></div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
