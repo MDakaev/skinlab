@@ -24,14 +24,16 @@ import {
   toggleShelf,
   resetProfile,
   dismissTip,
-} from '/shared/engine.js';
-import { weeklyPlan } from '/shared/schedule.js';
-import { activeDetail, activeIcon, applyGuideView, esc, tipBtn, uiIcon } from '/shared/content.js';
-import { APP_GUIDE_STEPS, howToPreview } from '/shared/guide.js';
-import { QUIZ_QUESTIONS, scoreQuiz, quizProgress } from '/shared/quiz.js';
-import { ICON_LEGEND } from '/shared/icons.js';
-import { registerSW, setupInstall } from '/shared/pwa.js';
-import { enhanceHScroll } from '/shared/hscroll.js';
+} from '../shared/engine.js';
+import { weeklyPlan } from '../shared/schedule.js';
+import { idealRoutine } from '../shared/ideal.js';
+import { activeDetail, activeIcon, applyGuideView, esc, tipBtn, uiIcon } from '../shared/content.js';
+import { APP_GUIDE_STEPS, HYDRATION_PARTS, MOISTURIZER_RULES, howToPreview } from '../shared/guide.js';
+import { QUIZ_QUESTIONS, scoreQuiz, quizProgress } from '../shared/quiz.js';
+import { ICON_LEGEND } from '../shared/icons.js';
+import { registerSW, setupInstall } from '../shared/pwa.js';
+import { enhanceHScroll } from '../shared/hscroll.js';
+import { THEME_OPTIONS, applyTheme, nextTheme, watchSystemTheme } from '../shared/theme.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -64,10 +66,11 @@ const POPULAR = ['retinol', 'vitc', 'niacinamide', 'aha', 'bha', 'azelaic'];
 
 /** Разделы нижней навигации: id иконки совпадает с глифом в shared/icons.js. */
 const TABS = [
-  { id: 'pairs', label: 'Сочетания' },
-  { id: 'plan', label: 'Мой уход' },
-  { id: 'catalog', label: 'Активы' },
-  { id: 'me', label: 'Профиль' },
+  { id: 'pairs', label: 'Сочетания', icon: 'pairs' },
+  { id: 'ideal', label: 'Идеал', icon: 'sparkle' },
+  { id: 'plan', label: 'Мой уход', icon: 'plan' },
+  { id: 'catalog', label: 'Активы', icon: 'catalog' },
+  { id: 'me', label: 'Профиль', icon: 'me' },
 ];
 
 /** Понятные подписи вместо терминов: женщина должна понять вердикт без словаря. */
@@ -87,6 +90,23 @@ function toast(text) {
 
 const onShelf = (id) => state.profile.shelf.includes(id);
 
+/** Тема хранится в профиле, а в документ попадает уже вычисленной. */
+function setTheme(pref) {
+  state.profile = saveProfile({ theme: pref });
+  const resolved = applyTheme(pref);
+  syncThemeButton();
+  return resolved;
+}
+
+function syncThemeButton() {
+  const btn = $('#themeBtn');
+  if (!btn) return;
+  const option = THEME_OPTIONS.find((o) => o.id === state.profile.theme) || THEME_OPTIONS[0];
+  btn.innerHTML = uiIcon(option.icon, 'md');
+  btn.setAttribute('aria-label', `Оформление: ${option.label.toLowerCase()}. Переключить`);
+  btn.title = `Оформление: ${option.label.toLowerCase()}`;
+}
+
 function tipBanner(id, text) {
   if (state.profile.dismissedTips?.[id]) return '';
   return `
@@ -98,7 +118,13 @@ function tipBanner(id, text) {
 
 /* ---------------- Персональные пометки ---------------- */
 
-function personalNotes(active) {
+/**
+ * Пометки под конкретную женщину: лекарство, беременность, тип кожи, увлажнение.
+ * @param {object} active
+ * @param {{ skipMoisturizer?: boolean }} options — на экране «Мой уход» про крем
+ *   уже говорит общий вывод недельного плана, дублировать его у каждого актива незачем.
+ */
+function personalNotes(active, { skipMoisturizer = false } = {}) {
   const notes = [];
   const p = state.profile;
 
@@ -109,6 +135,13 @@ function personalNotes(active) {
   if (p.pregnant && active.pregnancy !== 'yes') {
     const preg = PREGNANCY_LABEL[active.pregnancy];
     notes.push({ tone: preg.tone, text: preg.text });
+  }
+
+  if (!skipMoisturizer && active.needsMoisturizer && !p.shelf.includes('moisturizer')) {
+    notes.push({
+      tone: 'warn',
+      text: 'После этого актива увлажняющий крем обязателен — в вашем наборе его пока нет.',
+    });
   }
 
   if (p.skin) {
@@ -284,6 +317,140 @@ function bucketBlock(bucket, items) {
     </section>`;
 }
 
+/* ---------------- Экран «Идеальный уход» ---------------- */
+
+function idealScreen() {
+  const p = state.profile;
+  const ideal = idealRoutine(p);
+  const plan = weeklyPlan(ideal.ids, { experience: ideal.experience });
+  const adopted = ideal.ids.every((id) => p.shelf.includes(id));
+
+  return `
+    <div class="screen">
+      <div class="hello">
+        <h1>Идеальный уход</h1>
+        <p>Готовая рутина под ваши настройки: тип кожи, задачи, беременность и то, привыкла ли кожа к активам.</p>
+      </div>
+
+      ${tipBanner('ideal-intro', 'Меняйте настройки прямо здесь — рутина пересобирается сразу. Базовые шаги (очищение, крем, SPF) остаются всегда.')}
+
+      ${idealSettings(p, ideal)}
+
+      ${ideal.notes.length ? noteList(ideal.notes) : ''}
+
+      <div class="routine-cols">
+        ${routineColumn('Утро', 'sun', ideal.am)}
+        ${routineColumn('Вечер', 'moon', ideal.pm)}
+      </div>
+
+      <div class="ideal-cta">
+        <button class="btn-primary" data-adopt-ideal${adopted ? ' disabled' : ''}>
+          ${adopted ? '✓ Это уже ваш набор' : 'Сделать это моим уходом'}
+        </button>
+        <p class="hint">Активы попадут в раздел «Мой уход», где можно смотреть недельное расписание и добавлять своё.</p>
+      </div>
+
+      <div>
+        <div class="section-title">
+          <h2>Как это ложится на неделю ${tipBtn('Сильные активы стоят не каждый день: частота зависит от раздражающего потенциала и режима адаптации.')}</h2>
+        </div>
+        ${weekView(plan)}
+      </div>
+
+      ${
+        ideal.excluded.length
+          ? `<div>
+              <div class="section-title"><h2>Что не вошло и почему</h2></div>
+              <div class="excluded">
+                ${ideal.excluded
+                  .slice(0, 6)
+                  .map(
+                    (e) => `<button class="excluded__row excluded__row--${e.tone}" data-focus="${e.active.id}">
+                      <span class="excluded__name">${activeIcon(e.active, 'sm')} ${esc(e.active.name)}</span>
+                      <span class="excluded__why">${esc(e.why)}</span>
+                    </button>`
+                  )
+                  .join('')}
+              </div>
+            </div>`
+          : ''
+      }
+
+      <button class="btn-second" data-open-hydration>Почему увлажняющий крем обязателен</button>
+      <p class="sl-disclaimer">Подбор построен на общих правилах и не учитывает диагнозы. При розацеа, дерматите и во время беременности схему согласуют с дерматологом.</p>
+    </div>`;
+}
+
+/** Настройки прямо на экране: подбор должен меняться без похода в профиль. */
+function idealSettings(p, ideal) {
+  const skin = SKIN_TYPES.find((t) => t.id === p.skin);
+
+  return `
+    <section class="setup">
+      <div class="setup__head">
+        <b>Ваши настройки</b>
+        <span class="sl-pill${skin ? '' : ' sl-pill--night'}">${skin ? esc(skin.label) : 'тип кожи не выбран'}</span>
+      </div>
+
+      <div class="setup__block">
+        <p class="setup__label">Тип кожи</p>
+        <div class="chips">
+          ${SKIN_TYPES.map(
+            (t) => `<button class="chip${p.skin === t.id ? ' is-on' : ''}" data-skin="${t.id}">${uiIcon(t.id, 'sm')} ${esc(t.label)}</button>`
+          ).join('')}
+          <button class="chip" data-open-quiz>Пройти тест</button>
+        </div>
+      </div>
+
+      <div class="setup__block">
+        <p class="setup__label">Что хотите решить${ideal.usingDefaults ? ' — пока ничего не выбрано' : ''}</p>
+        <div class="chips">
+          ${CONCERNS.map(
+            (c) => `<button class="chip${p.concerns.includes(c.id) ? ' is-on' : ''}" data-concern-toggle="${c.id}">${uiIcon(c.id, 'sm')} ${esc(c.label)}</button>`
+          ).join('')}
+        </div>
+      </div>
+
+      <div class="setup__switches">
+        <button class="setup__switch${p.pregnant ? ' is-on' : ''}" data-pregnant-toggle aria-pressed="${p.pregnant}">
+          Беременность и лактация
+        </button>
+        <button class="setup__switch${p.experience === 'adapted' ? ' is-on' : ''}" data-experience-toggle aria-pressed="${p.experience === 'adapted'}">
+          Кожа привыкла к активам
+        </button>
+      </div>
+    </section>`;
+}
+
+function routineColumn(title, icon, steps) {
+  return `
+    <section class="routine">
+      <h2 class="routine__title">${uiIcon(icon, 'sm')} ${esc(title)}</h2>
+      <ol class="routine__list">
+        ${steps
+          .map(
+            (s) => `<li class="routine__step${s.required ? ' is-required' : ''}${s.support ? ' is-support' : ''}">
+              <span class="routine__num">${s.step}</span>
+              <div class="routine__body">
+                <div class="routine__head">
+                  ${s.active && !s.icon ? activeIcon(s.active, 'sm') : `<span class="routine__glyph">${uiIcon(s.icon, 'sm')}</span>`}
+                  <b>${esc(s.title)}</b>
+                  ${s.required ? '<span class="routine__badge">обязательно</span>' : ''}
+                  ${s.support ? '<span class="routine__badge routine__badge--soft">поддержка</span>' : ''}
+                  ${s.frequency ? `<span class="routine__freq">${esc(s.frequency)}</span>` : ''}
+                </div>
+                <p>${esc(s.text)}</p>
+                ${s.skinWarning ? '<p class="routine__warn">Для вашего типа кожи — с осторожностью: начните с минимальной частоты.</p>' : ''}
+                ${s.pregnancyWarning ? '<p class="routine__warn">При беременности — только по согласованию с врачом.</p>' : ''}
+                ${s.active ? `<button class="linkish" data-detail="${s.active.id}">Подробнее про ${esc(s.active.name.toLowerCase())} →</button>` : ''}
+              </div>
+            </li>`
+          )
+          .join('')}
+      </ol>
+    </section>`;
+}
+
 /* ---------------- Экран «Мой уход» ---------------- */
 
 function planScreen() {
@@ -301,12 +468,14 @@ function planScreen() {
         <div>
           <div class="section-title"><h2>Добавить быстро</h2></div>
           <div class="chips">
-            ${POPULAR.map((id) => getActive(id))
+            ${['moisturizer', 'spf', ...POPULAR]
+              .map((id) => getActive(id))
               .filter(Boolean)
               .map((a) => `<button class="chip" data-shelf-toggle="${a.id}">+ ${activeIcon(a, 'sm')} ${esc(a.name)}</button>`)
               .join('')}
           </div>
         </div>
+        <button class="btn-primary" data-goto="ideal">Собрать идеальный уход по моим настройкам</button>
         <button class="btn-second" data-goto="pairs">Открыть справочник сочетаний</button>
       </div>`;
   }
@@ -314,7 +483,9 @@ function planScreen() {
   const combo = checkCombo(state.profile.shelf);
   const plan = weeklyPlan(state.profile.shelf, { experience: state.profile.experience });
   const problems = combo.pairs.filter((p) => p.level === 'avoid' || p.level === 'caution');
-  const personal = shelf.flatMap((a) => personalNotes(a).map((n) => ({ ...n, text: `${a.name}: ${n.text}` })));
+  const personal = shelf.flatMap((a) =>
+    personalNotes(a, { skipMoisturizer: true }).map((n) => ({ ...n, text: `${a.name}: ${n.text}` }))
+  );
 
   const V = LEVELS[combo.verdict.level];
 
@@ -391,8 +562,15 @@ function planScreen() {
         </div>
       </div>
 
+      ${
+        onShelf('moisturizer')
+          ? ''
+          : `<button class="btn-primary" data-shelf-toggle="moisturizer">+ Добавить увлажняющий крем</button>`
+      }
+      <button class="btn-second" data-goto="ideal">Показать идеальный уход для меня</button>
       <button class="btn-second" data-goto="catalog">Добавить ещё актив</button>
       <button class="btn-second" data-open-apply>Как правильно наносить активы</button>
+      <button class="btn-second" data-open-hydration>Увлажнение: чем и зачем</button>
     </div>`;
 }
 
@@ -531,9 +709,22 @@ function meScreen() {
         </button>
       </div>
 
+      <div>
+        <div class="section-title"><h2>Оформление</h2></div>
+        <div class="theme-seg" role="group" aria-label="Тема оформления">
+          ${THEME_OPTIONS.map(
+            (o) => `<button class="theme-seg__btn${p.theme === o.id ? ' is-on' : ''}" data-theme-set="${o.id}" aria-pressed="${p.theme === o.id}">
+              ${uiIcon(o.icon, 'sm')} ${esc(o.label)}
+            </button>`
+          ).join('')}
+        </div>
+        <p class="hint">«Системная» переключается вместе с ночным режимом телефона.</p>
+      </div>
+
       <div class="help-links">
         <button class="help-link" data-open-help><span>${uiIcon('catalog', 'md')}</span> Как пользоваться приложением</button>
         <button class="help-link" data-open-apply><span>${uiIcon('bottle', 'md')}</span> Как наносить активы</button>
+        <button class="help-link" data-open-hydration><span>${uiIcon('cream', 'md')}</span> Увлажнение: чем и зачем</button>
         <button class="help-link" data-open-onboard><span>${uiIcon('sparkle', 'md')}</span> Показать знакомство снова</button>
       </div>
 
@@ -589,6 +780,7 @@ function renderOverlay() {
     help: helpMarkup,
     quiz: quizMarkup,
     apply: applyMarkup,
+    hydration: hydrationMarkup,
   };
   overlayBody.innerHTML = (builders[state.overlay] || helpMarkup)();
   overlay.hidden = false;
@@ -644,6 +836,38 @@ function applyMarkup() {
       <p class="help__lead">Общий порядок слоёв. У каждого актива в карточке — своя пошаговая инструкция.</p>
       ${applyGuideView()}
       <button type="button" class="btn-primary" data-overlay-close>Понятно</button>
+    </div>`;
+}
+
+function hydrationMarkup() {
+  return `
+    <div class="help">
+      <h2 id="overlayTitle">Увлажнение: чем и зачем</h2>
+      <p class="help__lead">
+        Крем — единственный шаг рутины без выходных. Он не «мешает» активам: он закрывает барьер,
+        который кислоты и ретиноиды намеренно расшатывают.
+      </p>
+
+      <div class="hydration">
+        ${HYDRATION_PARTS.map(
+          (part) => `<div class="hydration__part">
+            <b>${esc(part.title)}</b>
+            <i>${esc(part.inci)}</i>
+            <p>${esc(part.text)}</p>
+          </div>`
+        ).join('')}
+      </div>
+
+      <div class="sl-apply__rules">
+        ${MOISTURIZER_RULES.map(
+          (r) => `<div class="sl-apply__rule"><b>${esc(r.title)}</b><p>${esc(r.text)}</p></div>`
+        ).join('')}
+      </div>
+
+      <button type="button" class="btn-primary" data-shelf-toggle="moisturizer">
+        ${onShelf('moisturizer') ? '✓ Крем уже в вашем уходе' : '+ Добавить крем в мой уход'}
+      </button>
+      <button type="button" class="btn-second" data-overlay-close>Закрыть</button>
     </div>`;
 }
 
@@ -716,12 +940,12 @@ function plural(n, one, few, many) {
   return many;
 }
 
-const SCREENS = { pairs: pairsScreen, plan: planScreen, catalog: catalogScreen, me: meScreen };
+const SCREENS = { pairs: pairsScreen, ideal: idealScreen, plan: planScreen, catalog: catalogScreen, me: meScreen };
 
 function renderTabbar() {
   tabbar.innerHTML = TABS.map(
     (t) => `<button type="button" data-tab="${t.id}"${state.tab === t.id ? ' class="is-active" aria-current="page"' : ''}>
-      <span class="tabbar__ico">${uiIcon(t.id, 'lg')}</span>${esc(t.label)}
+      <span class="tabbar__ico">${uiIcon(t.icon || t.id, 'lg')}</span>${esc(t.label)}
     </button>`
   ).join('');
 }
@@ -789,6 +1013,7 @@ document.addEventListener('click', (e) => {
   if (t.closest('[data-open-help]')) return openOverlay('help');
   if (t.closest('[data-open-onboard]')) return openOverlay('onboard');
   if (t.closest('[data-open-apply]')) return openOverlay('apply');
+  if (t.closest('[data-open-hydration]')) return openOverlay('hydration');
   if (t.closest('[data-open-quiz]')) return openOverlay('quiz');
 
   if (t.closest('[data-overlay-close]')) {
@@ -877,7 +1102,16 @@ document.addEventListener('click', (e) => {
     state.profile = toggleShelf(id);
     closeSheet();
     render({ keepScroll: true });
+    if (state.overlay) renderOverlay();
     return toast(wasOn ? 'Убрали из вашего ухода' : `${getActive(id).name} в вашем уходе`);
+  }
+
+  if (t.closest('[data-adopt-ideal]')) {
+    const ideal = idealRoutine(state.profile);
+    const merged = [...new Set([...state.profile.shelf, ...ideal.ids])];
+    state.profile = saveProfile({ shelf: merged });
+    go('plan');
+    return toast('Идеальный уход перенесён в «Мой уход»');
   }
 
   const skin = t.closest('[data-skin]');
@@ -922,6 +1156,20 @@ document.addEventListener('click', (e) => {
     return toast(next === 'adapted' ? 'Частота активов повышена' : 'Вернули мягкий режим');
   }
 
+  const themeSet = t.closest('[data-theme-set]');
+  if (themeSet) {
+    const resolved = setTheme(themeSet.dataset.themeSet);
+    render({ keepScroll: true });
+    return toast(resolved === 'dark' ? 'Включили тёмную тему' : 'Включили светлую тему');
+  }
+
+  if (t.closest('#themeBtn')) {
+    setTheme(nextTheme(state.profile.theme));
+    if (state.tab === 'me') render({ keepScroll: true });
+    const label = THEME_OPTIONS.find((o) => o.id === state.profile.theme)?.label || '';
+    return toast(`Оформление: ${label.toLowerCase()}`);
+  }
+
   if (t.closest('[data-clear-query]')) {
     state.query = '';
     return render({ keepScroll: true });
@@ -954,7 +1202,14 @@ document.addEventListener('keydown', (e) => {
   if (!sheet.hidden) closeSheet();
 });
 
+applyTheme(state.profile.theme);
+watchSystemTheme(
+  () => state.profile.theme,
+  () => syncThemeButton()
+);
+
 render();
+syncThemeButton();
 registerSW();
 setupInstall($('#install'), { onHint: toast });
 

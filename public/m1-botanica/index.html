@@ -8,12 +8,25 @@
       name="description"
       content="Подскажем, какие активы в уходе за кожей сочетаются друг с другом, какие нельзя наносить вместе и как разложить их по дням недели."
     />
-    <meta name="theme-color" content="#7a774a" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
-    <link rel="icon" href="/assets/favicon-64.png" />
-    <link rel="stylesheet" href="/assets/fonts/fonts.css" />
-    <link rel="stylesheet" href="/shared/base.css" />
+    <meta name="theme-color" content="#cfe3f2" />
+    <script>
+      /* Тема применяется до первой отрисовки, иначе на тёмной теме мигает светлый фон. */
+      (() => {
+        try {
+          const pref = JSON.parse(localStorage.getItem('skinlab.profile.v1') || '{}').theme || 'auto';
+          const dark = pref === 'dark' || (pref !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+    <link rel="manifest" href="../manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
+    <link rel="icon" href="../assets/favicon-64.png" />
+    <link rel="stylesheet" href="../assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="../shared/base.css" />
     <link rel="stylesheet" href="./theme.css" />
   </head>
   <body>
@@ -36,6 +49,7 @@
             </span>
           </a>
           <div class="topbar__actions">
+            <button class="ghost-btn ghost-btn--icon" id="themeBtn" type="button" aria-label="Переключить оформление"></button>
             <button class="ghost-btn ghost-btn--icon" id="helpBtn" type="button" aria-label="Как пользоваться">?</button>
             <button class="ghost-btn" id="install" hidden>Установить</button>
           </div>

@@ -29,10 +29,19 @@ const FREQUENCY = {
   adapted: { 5: 3, 4: 4, 3: 5, 2: 7, 1: 7 },
 };
 
+/** Сколько раз в неделю уместен актив сам по себе, без учёта остального набора. */
+export function timesPerWeek(active, experience = 'start') {
+  const freq = FREQUENCY[experience] || FREQUENCY.start;
+  return freq[active?.irritation] ?? 3;
+}
+
 const CONFLICT_LEVELS = new Set(['avoid', 'caution']);
 
 /** Активы, после которых защита от солнца обязательна. */
 const PHOTOSENSITIZING = new Set(['retinol', 'retinal', 'adapalene', 'aha', 'bha', 'pha']);
+
+/** Чем можно закрыть шаг увлажнения: сам крем или средство, которое его заменяет. */
+const HYDRATING = new Set(['moisturizer', 'ceramides', 'squalane', 'urea']);
 
 const byLayer = (a, b) => a.layer - b.layer;
 
@@ -164,6 +173,21 @@ function buildNotes(items, { separatedByTime, rotatedByDay }) {
       text: `В наборе есть активы, повышающие чувствительность к солнцу (${needsSpf
         .map((a) => a.name.toLowerCase())
         .join(', ')}). Без SPF утром результат обнуляется, а риск пигментации растёт.`,
+    });
+  }
+
+  const drying = items.filter((a) => a.needsMoisturizer);
+  if (drying.length && !items.some((a) => HYDRATING.has(a.id))) {
+    notes.push({
+      tone: 'bad',
+      text: `В наборе нет увлажняющего крема. С такими активами, как ${drying
+        .map((a) => a.name)
+        .join(', ')}, он обязателен: без него барьер не восстанавливается, а это шелушение, краснота и в итоге больше высыпаний, чем было.`,
+    });
+  } else if (drying.length && !has('moisturizer')) {
+    notes.push({
+      tone: 'warn',
+      text: 'Церамиды и сквалан закрывают часть задачи, но полноценный увлажняющий крем финальным шагом всё же нужен каждый день.',
     });
   }
 

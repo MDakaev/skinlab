@@ -5,7 +5,10 @@ let deferredPrompt = null;
 export function registerSW() {
   if (!('serviceWorker' in navigator)) return;
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {
+    // Относительно shared/pwa.js → корень сайта (и /local, и /skinlab/).
+    const swUrl = new URL('../sw.js', import.meta.url);
+    const scope = new URL('../', import.meta.url);
+    navigator.serviceWorker.register(swUrl, { scope }).catch(() => {
       /* офлайн-режим просто не включится */
     });
   });

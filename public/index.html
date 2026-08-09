@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>SkinLab — четыре макета</title>
     <meta name="description" content="Прототип справочника уход-активов: выберите один из четырёх вариантов дизайна." />
-    <meta name="theme-color" content="#d98ba5" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
-    <link rel="icon" href="/assets/favicon-64.png" />
-    <link rel="stylesheet" href="/assets/fonts/fonts.css" />
+    <meta name="theme-color" content="#cfe3f2" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+    <link rel="icon" href="./assets/favicon-64.png" />
+    <link rel="stylesheet" href="./assets/fonts/fonts.css" />
     <style>
       :root {
-        --ink: #1d1a24;
-        --muted: #6f6a7d;
-        --line: rgba(29, 26, 36, 0.12);
+        --ink: #16334a;
+        --muted: #4d6b84;
+        --line: rgba(22, 51, 74, 0.14);
+        --brand: #2f6d9e;
         --ease: cubic-bezier(0.22, 1, 0.36, 1);
       }
 
@@ -27,10 +28,10 @@
         min-height: 100dvh;
         font-family: 'Inter', system-ui, sans-serif;
         color: var(--ink);
-        background: #faf7f4;
-        background-image: radial-gradient(60vmax 40vmax at 12% -8%, #ffe2ec 0%, transparent 60%),
-          radial-gradient(50vmax 40vmax at 92% 6%, #e6e2ff 0%, transparent 60%),
-          radial-gradient(50vmax 40vmax at 60% 100%, #dff3ec 0%, transparent 60%);
+        background: #eef5fb;
+        background-image: radial-gradient(60vmax 40vmax at 12% -8%, #cfe3f2 0%, transparent 60%),
+          radial-gradient(50vmax 40vmax at 92% 6%, #dbe9f6 0%, transparent 60%),
+          radial-gradient(50vmax 40vmax at 60% 100%, #c7ddee 0%, transparent 60%);
         padding: clamp(24px, 5vw, 64px);
       }
 
@@ -43,7 +44,7 @@
         font-size: 11px;
         letter-spacing: 0.26em;
         text-transform: uppercase;
-        color: #b1568a;
+        color: var(--brand);
         font-weight: 600;
       }
 
@@ -124,20 +125,20 @@
 
       /* 1 — Botanica */
       .p1 {
-        background: linear-gradient(140deg, #eef1e7, #f7efe7);
+        background: linear-gradient(140deg, #dbe9f6, #eef5fb);
       }
       .p1 .card__phone {
-        background: #fbf8f3;
+        background: #f7fbfe;
       }
       .p1 .bar {
-        background: #7e9a80;
+        background: #2f6d9e;
       }
       .p1 .bar.b2 {
-        background: #d9c6b4;
+        background: #9dbdd4;
         width: 60%;
       }
       .p1 .blk {
-        background: #e8ede1;
+        background: #dceaf5;
       }
 
       /* 2 — Editorial */
@@ -238,8 +239,8 @@
         font-size: 11px;
         padding: 5px 10px;
         border-radius: 99px;
-        background: #f2eef1;
-        color: #6b6478;
+        background: #e3eef8;
+        color: var(--muted);
       }
 
       .facts {
@@ -275,12 +276,12 @@
         margin-top: 28px;
         padding: 16px 26px;
         border-radius: 99px;
-        background: #7e9a80;
+        background: var(--brand);
         color: #fff;
         text-decoration: none;
         font-weight: 700;
         font-size: 15.5px;
-        box-shadow: 0 20px 40px -22px rgba(126, 154, 128, 0.9);
+        box-shadow: 0 20px 40px -22px rgba(47, 109, 158, 0.9);
         transition: transform 0.3s var(--ease);
       }
 
@@ -320,13 +321,13 @@
         подтверждения в источниках, его в приложении не будет.
       </p>
 
-      <a class="cta" href="/m1-botanica/?tab=pairs">Открыть приложение →</a>
+      <a class="cta" href="./m1-botanica/?tab=pairs">Открыть приложение →</a>
 
       <div class="facts" style="margin-top: 44px">
         <div class="fact"><b>Сочетания по группам</b><span>Отличная пара, совместимы, осторожно, не вместе — с объяснением причины.</span></div>
+        <div class="fact"><b>Идеальный уход</b><span>Готовая рутина на утро и вечер под тип кожи и задачи, с частотой у каждого шага.</span></div>
         <div class="fact"><b>Неделя без конфликтов</b><span>Расписание само разводит активы по времени суток и по дням.</span></div>
         <div class="fact"><b>Личные предупреждения</b><span>Учитываем тип кожи и беременность, а не выдаём общий совет всем.</span></div>
-        <div class="fact"><b>PWA</b><span>Ставится на телефон из браузера, работает офлайн после первого открытия.</span></div>
       </div>
 
       <div class="archive-head">
@@ -338,7 +339,7 @@
       </div>
 
       <div class="grid">
-        <a class="card" href="/m2-editorial/">
+        <a class="card" href="./m2-editorial/">
           <div class="card__preview p2">
             <div class="card__phone">
               <div class="bar"></div>
@@ -355,7 +356,7 @@
           </div>
         </a>
 
-        <a class="card" href="/m3-noir/">
+        <a class="card" href="./m3-noir/">
           <div class="card__preview p3">
             <div class="card__phone">
               <div class="bar"></div>
@@ -372,7 +373,7 @@
           </div>
         </a>
 
-        <a class="card" href="/m4-bubble/">
+        <a class="card" href="./m4-bubble/">
           <div class="card__preview p4">
             <div class="card__phone">
               <div class="bar"></div>
