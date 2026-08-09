@@ -116,11 +116,27 @@ const defaults = {
   pregnant: false,
   /** 'start' — кожа не адаптирована, 'adapted' — активы уже вводились. */
   experience: 'start',
+  /** Первый запуск: онбординг пройден. */
+  onboarded: false,
+  /** Тест типа кожи пройден (даже если потом сменили тип вручную). */
+  quizDone: false,
+  /** Ответы квиза { questionId: optionId } — чтобы можно было перепройти. */
+  quizAnswers: {},
+  /** Скрытые подсказки интерфейса (id → true). */
+  dismissedTips: {},
 };
 
 export function loadProfile() {
   try {
-    return { ...defaults, ...JSON.parse(localStorage.getItem(STORE_KEY) || '{}') };
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    return {
+      ...defaults,
+      ...raw,
+      concerns: Array.isArray(raw.concerns) ? raw.concerns : [],
+      shelf: Array.isArray(raw.shelf) ? raw.shelf : [],
+      quizAnswers: raw.quizAnswers && typeof raw.quizAnswers === 'object' ? raw.quizAnswers : {},
+      dismissedTips: raw.dismissedTips && typeof raw.dismissedTips === 'object' ? raw.dismissedTips : {},
+    };
   } catch {
     return { ...defaults };
   }
@@ -136,6 +152,16 @@ export function toggleShelf(id) {
   const p = loadProfile();
   const shelf = p.shelf.includes(id) ? p.shelf.filter((x) => x !== id) : [...p.shelf, id];
   return saveProfile({ shelf });
+}
+
+export function dismissTip(id) {
+  const p = loadProfile();
+  return saveProfile({ dismissedTips: { ...p.dismissedTips, [id]: true } });
+}
+
+export function resetProfile() {
+  localStorage.removeItem(STORE_KEY);
+  return { ...defaults };
 }
 
 export const PREGNANCY_LABEL = {

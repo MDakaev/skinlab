@@ -2,25 +2,36 @@
    Внешний вид задаётся переменными, которые переопределяет тема. */
 
 :root {
-  --bg: #ffffff;
-  --surface: #ffffff;
-  --surface-2: #f6f6f7;
-  --text: #16151a;
-  --muted: #6c6a75;
-  --line: rgba(20, 18, 30, 0.1);
-  --brand: #d98ba5;
-  --brand-ink: #ffffff;
-  --good: #3f9d6d;
-  --good-bg: rgba(63, 157, 109, 0.12);
-  --ok: #4f86c6;
-  --ok-bg: rgba(79, 134, 198, 0.12);
-  --warn: #cf8a2a;
-  --warn-bg: rgba(207, 138, 42, 0.14);
-  --bad: #cf4a52;
-  --bad-bg: rgba(207, 74, 82, 0.12);
+  /* Базовая палитра: песок, олива, тёмно-коричневый, холодный серо-голубой. */
+  --sand: #dfd7c7;
+  --olive: #7a774a;
+  --ink: #483f29;
+  --steel: #a1afb8;
+
+  --bg: #c6c7c1;
+  --surface: var(--sand);
+  --surface-2: #b7bdbd;
+  --text: var(--ink);
+  --muted: #5b5847;
+  --line: rgba(72, 63, 41, 0.14);
+  --brand: var(--olive);
+  /* Затемнённая олива — для мелкого текста, где нужен контраст. */
+  --brand-deep: #615b3a;
+  --brand-ink: var(--sand);
+  /* Четыре уровня совместимости различаются оттенком и «весом» заливки:
+     олива → хорошо, серо-голубой → нейтрально, коричневый → осторожно,
+     плотный коричневый → нельзя. */
+  --good: #5e5b35;
+  --good-bg: rgba(122, 119, 74, 0.2);
+  --ok: #556168;
+  --ok-bg: rgba(161, 175, 184, 0.4);
+  --warn: #665c48;
+  --warn-bg: rgba(72, 63, 41, 0.1);
+  --bad: var(--ink);
+  --bad-bg: rgba(72, 63, 41, 0.2);
   --radius: 22px;
   --radius-sm: 14px;
-  --shadow: 0 18px 40px -24px rgba(20, 18, 30, 0.45);
+  --shadow: 0 18px 40px -24px rgba(72, 63, 41, 0.45);
   --font-head: 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -249,12 +260,12 @@ canvas {
   color: var(--bad);
 }
 .sl-pill--night {
-  background: rgba(88, 86, 214, 0.14);
-  color: #6c69d8;
+  background: var(--pill-night-bg, rgba(88, 86, 214, 0.14));
+  color: var(--pill-night-fg, #6c69d8);
 }
 .sl-pill--day {
-  background: rgba(240, 173, 78, 0.16);
-  color: #c98b28;
+  background: var(--pill-day-bg, rgba(240, 173, 78, 0.16));
+  color: var(--pill-day-fg, #c98b28);
 }
 
 /* ---------- Детальная карточка ---------- */
@@ -281,7 +292,7 @@ canvas {
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--brand);
+  color: var(--brand-deep, var(--brand));
   font-weight: 600;
 }
 
@@ -314,7 +325,7 @@ canvas {
 
 .sl-shelf-btn:hover {
   border-color: var(--brand);
-  color: var(--brand);
+  color: var(--brand-deep, var(--brand));
 }
 
 .sl-shelf-btn .sl-shelf-btn__on {
@@ -531,7 +542,7 @@ canvas {
   place-items: center;
   border-radius: 50%;
   font-size: 12px;
-  color: #fff;
+  color: var(--sand);
 }
 
 .sl-rel--good {
@@ -616,7 +627,7 @@ canvas {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-weight: 700;
-  color: var(--brand);
+  color: var(--brand-deep, var(--brand));
 }
 
 .sl-disclaimer {
@@ -639,8 +650,8 @@ canvas {
 }
 
 .sl-badge--drug {
-  color: #fff;
-  background: #b4322b;
+  color: var(--sand);
+  background: var(--bad);
 }
 
 .sl-sources {
@@ -652,7 +663,7 @@ canvas {
 }
 
 .sl-source {
-  color: var(--brand);
+  color: var(--brand-deep, var(--brand));
   text-decoration: none;
   border-bottom: 1px solid color-mix(in srgb, var(--brand) 40%, transparent);
   overflow-wrap: anywhere;
@@ -693,7 +704,7 @@ canvas {
   place-items: center;
   border-radius: 50%;
   font-size: 19px;
-  color: #fff;
+  color: var(--sand);
 }
 
 .sl-verdict--good {
@@ -916,6 +927,225 @@ canvas {
   font-size: 12.5px;
   color: var(--muted);
   text-align: center;
+}
+
+/* --- Иконки активов --- */
+
+.sl-ico {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--surface-2);
+  vertical-align: middle;
+}
+
+.sl-ico__svg {
+  width: 58%;
+  height: 58%;
+}
+
+.sl-ico--xs {
+  width: 14px;
+  height: 14px;
+}
+
+.sl-ico--sm {
+  width: 28px;
+  height: 28px;
+}
+
+.sl-ico--md {
+  width: 42px;
+  height: 42px;
+}
+
+.sl-ico--lg {
+  width: 64px;
+  height: 64px;
+}
+
+/* Группы читаются по паре «заливка + вес»: сплошные бейджи — сильные активы,
+   прозрачные — мягкие. Цвета берутся из темы, чтобы палитра оставалась единой. */
+
+.sl-ico--night {
+  background: var(--ico-night-bg, #d9e0ef);
+  color: var(--ico-night-fg, #3a4a6b);
+}
+
+.sl-ico--day {
+  background: var(--ico-day-bg, #f3e2c8);
+  color: var(--ico-day-fg, #7a5420);
+}
+
+.sl-ico--warn {
+  background: var(--ico-warn-bg, #f0dcc4);
+  color: var(--ico-warn-fg, #8a5a22);
+}
+
+.sl-ico--ok {
+  background: var(--ico-ok-bg, #d5e6f2);
+  color: var(--ico-ok-fg, #2f5f7a);
+}
+
+.sl-ico--good {
+  background: var(--ico-good-bg, #d7e6d6);
+  color: var(--ico-good-fg, #345a3c);
+}
+
+.sl-ico--soft {
+  background: var(--ico-soft-bg, #eadff0);
+  color: var(--ico-soft-fg, #5c4468);
+}
+
+.sl-ico--neutral {
+  background: var(--ico-neutral-bg, var(--surface-2));
+  color: var(--ico-neutral-fg, var(--text));
+}
+
+/* --- Интерфейсные иконки --- */
+
+.sl-uico {
+  flex: none;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* --- Подсказки (?) --- */
+
+.sl-tipbtn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.sl-tipbtn__mark {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.sl-tipbtn__pop {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: min(240px, 70vw);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--ink);
+  color: var(--sand);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+
+.sl-tipbtn__pop::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--ink);
+}
+
+.sl-tipbtn[aria-expanded='true'] .sl-tipbtn__pop {
+  display: block;
+}
+
+/* --- Инструкция по нанесению --- */
+
+.sl-apply {
+  display: grid;
+  gap: 16px;
+}
+
+.sl-apply__layers {
+  display: grid;
+  gap: 10px;
+}
+
+.sl-apply__layer {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.sl-apply__num {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sl-apply__layer b {
+  display: block;
+  font-size: 14.5px;
+}
+
+.sl-apply__layer p,
+.sl-apply__rule p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.sl-apply__rules {
+  display: grid;
+  gap: 8px;
+}
+
+.sl-apply__rule {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.sl-apply__rule b {
+  font-size: 13.5px;
+}
+
+.sl-detail__head .sl-ico {
+  margin-right: 4px;
+}
+
+.sl-stat__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sl-rel__name,
+.sl-pair__head span,
+.sl-routine__list li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -10,9 +10,13 @@ import {
   SKIN_VERDICT,
   TIME_LABEL,
 } from './engine.js';
+import { activeIcon, uiIcon } from './icons.js';
+import { APPLY_LAYERS, APPLY_RULES } from './guide.js';
 
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+export { activeIcon, uiIcon };
 
 export const meter = (value, max = 5) =>
   `<span class="sl-meter" aria-label="${value} из ${max}">${Array.from({ length: max }, (_, i) => `<i class="sl-meter__dot${i < value ? ' is-on' : ''}"></i>`).join('')}</span>`;
@@ -21,11 +25,19 @@ export function pill(text, tone = '') {
   return `<span class="sl-pill${tone ? ` sl-pill--${tone}` : ''}">${esc(text)}</span>`;
 }
 
+/** Кнопка-подсказка: клик/фокус открывает пояснение. */
+export function tipBtn(text, { label = 'Что это?' } = {}) {
+  return `<button type="button" class="sl-tipbtn" data-tip-toggle aria-expanded="false" aria-label="${esc(label)}">
+    <span class="sl-tipbtn__mark" aria-hidden="true">?</span>
+    <span class="sl-tipbtn__pop" role="tooltip">${esc(text)}</span>
+  </button>`;
+}
+
 /** Компактная карточка актива для списков и сеток. */
 export function activeCard(a, { selected = false } = {}) {
   return `
     <article class="sl-card${selected ? ' is-selected' : ''}" data-active="${a.id}" tabindex="0" role="button" aria-label="${esc(a.name)}">
-      <span class="sl-card__emoji" aria-hidden="true">${a.emoji}</span>
+      ${activeIcon(a, 'md')}
       <div class="sl-card__body">
         <h3 class="sl-card__title">${esc(a.name)}</h3>
         <p class="sl-card__inci">${esc(a.inci)}</p>
@@ -36,6 +48,32 @@ export function activeCard(a, { selected = false } = {}) {
         ${pill(a.group)}
       </div>
     </article>`;
+}
+
+/** Общая инструкция: порядок слоёв + правила нанесения. */
+export function applyGuideView() {
+  return `
+    <div class="sl-apply">
+      <ol class="sl-apply__layers">
+        ${APPLY_LAYERS.map(
+          (s) => `<li class="sl-apply__layer">
+            <span class="sl-apply__num">${s.step}</span>
+            <div>
+              <b>${esc(s.title)}</b>
+              <p>${esc(s.text)}</p>
+            </div>
+          </li>`
+        ).join('')}
+      </ol>
+      <div class="sl-apply__rules">
+        ${APPLY_RULES.map(
+          (r) => `<div class="sl-apply__rule">
+            <b>${esc(r.title)}</b>
+            <p>${esc(r.text)}</p>
+          </div>`
+        ).join('')}
+      </div>
+    </div>`;
 }
 
 export function productCard(p, activeNames) {
@@ -85,7 +123,7 @@ export function activeDetail(a) {
           ${items
             .map(
               (r) => `<li><button class="sl-rel__item" data-active="${r.active.id}">
-                  <span class="sl-rel__name">${r.active.emoji} ${esc(r.active.name)}</span>
+                  <span class="sl-rel__name">${activeIcon(r.active, 'sm')} ${esc(r.active.name)}</span>
                   <span class="sl-rel__why">${esc(r.why)}</span>
                 </button></li>`
             )
@@ -97,7 +135,7 @@ export function activeDetail(a) {
   const skinRow = SKIN_TYPES.map((t) => {
     const v = SKIN_VERDICT[a.skin[t.id]];
     return `<div class="sl-skin sl-skin--${v.tone}">
-        <span class="sl-skin__emoji">${t.emoji}</span>
+        <span class="sl-skin__icon">${uiIcon(t.id, 'md')}</span>
         <span class="sl-skin__label">${esc(t.label)}</span>
         <span class="sl-skin__verdict">${esc(v.text)}</span>
       </div>`;
@@ -105,7 +143,7 @@ export function activeDetail(a) {
 
   return `
     <header class="sl-detail__head">
-      <span class="sl-detail__emoji" aria-hidden="true">${a.emoji}</span>
+      ${activeIcon(a, 'lg')}
       <div>
         <p class="sl-detail__group">${esc(a.group)}</p>
         <h2 class="sl-detail__title">${esc(a.name)}${a.drug ? ' <span class="sl-badge sl-badge--drug">Лекарство</span>' : ''}</h2>
@@ -120,10 +158,19 @@ export function activeDetail(a) {
     <p class="sl-detail__lead">${esc(a.what)}</p>
 
     <div class="sl-stats">
-      <div class="sl-stat"><span class="sl-stat__label">Сила</span>${meter(a.power)}</div>
-      <div class="sl-stat"><span class="sl-stat__label">Риск раздражения</span>${meter(a.irritation)}</div>
+      <div class="sl-stat">
+        <span class="sl-stat__label">Сила ${tipBtn('Насколько актив «сильный» по действию. Высокая сила — чаще начинайте с меньшей частоты.', { label: 'Что значит сила' })}</span>
+        ${meter(a.power)}
+      </div>
+      <div class="sl-stat">
+        <span class="sl-stat__label">Риск раздражения ${tipBtn('Вероятность покраснения, жжения или шелушения. Высокий риск — вводите осторожно и укрепляйте барьер.', { label: 'Что значит риск раздражения' })}</span>
+        ${meter(a.irritation)}
+      </div>
       <div class="sl-stat"><span class="sl-stat__label">Когда</span><b>${esc(TIME_LABEL[a.time])}</b></div>
-      <div class="sl-stat"><span class="sl-stat__label">Слой в рутине</span><b>${a.layer} из 8</b></div>
+      <div class="sl-stat">
+        <span class="sl-stat__label">Слой в рутине ${tipBtn('Порядок нанесения: 1 — ближе к очищению, 8 — ближе к крему и SPF. Сначала лёгкие текстуры, потом плотные.', { label: 'Что значит слой' })}</span>
+        <b>${a.layer} из 8</b>
+      </div>
     </div>
 
     <div class="sl-flags">
@@ -176,9 +223,9 @@ export function comboResult(result) {
           const L = LEVELS[p.level];
           return `<div class="sl-pair sl-pair--${L.tone}">
               <div class="sl-pair__head">
-                <span>${p.a.emoji} ${esc(p.a.name)}</span>
+                <span>${activeIcon(p.a, 'sm')} ${esc(p.a.name)}</span>
                 <span class="sl-pair__plus">+</span>
-                <span>${p.b.emoji} ${esc(p.b.name)}</span>
+                <span>${activeIcon(p.b, 'sm')} ${esc(p.b.name)}</span>
                 <span class="sl-pair__badge">${esc(L.short)}</span>
               </div>
               <p class="sl-pair__why">${esc(p.why)}</p>
@@ -198,7 +245,7 @@ export function routineView(r) {
           ? `<ol class="sl-routine__list">${items
               .map(
                 (a) => `<li class="${r.conflicting.has(a.id) ? 'is-conflict' : ''}">
-                  <span class="sl-routine__emoji">${a.emoji}</span>
+                  ${activeIcon(a, 'sm')}
                   <span class="sl-routine__name">${esc(a.name)}</span>
                   <span class="sl-routine__layer">слой ${a.layer}</span>
                 </li>`
@@ -207,5 +254,5 @@ export function routineView(r) {
           : '<p class="sl-empty">Пока пусто</p>'
       }
     </div>`;
-  return `<div class="sl-routines">${col('Утро', r.am, '☀️')}${col('Вечер', r.pm, '🌙')}</div>`;
+  return `<div class="sl-routines">${col('Утро', r.am, uiIcon('sun', 'sm'))}${col('Вечер', r.pm, uiIcon('moon', 'sm'))}</div>`;
 }

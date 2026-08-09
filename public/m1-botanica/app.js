@@ -22,17 +22,25 @@ import {
   loadProfile,
   saveProfile,
   toggleShelf,
+  resetProfile,
+  dismissTip,
 } from '/shared/engine.js';
 import { weeklyPlan } from '/shared/schedule.js';
-import { activeDetail, esc } from '/shared/content.js';
+import { activeDetail, activeIcon, applyGuideView, esc, tipBtn, uiIcon } from '/shared/content.js';
+import { APP_GUIDE_STEPS, howToPreview } from '/shared/guide.js';
+import { QUIZ_QUESTIONS, scoreQuiz, quizProgress } from '/shared/quiz.js';
+import { ICON_LEGEND } from '/shared/icons.js';
 import { registerSW, setupInstall } from '/shared/pwa.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
 const view = $('#view');
+const tabbar = $('#tabbar');
 const sheet = $('#sheet');
 const sheetBody = $('#sheetBody');
+const overlay = $('#overlay');
+const overlayBody = $('#overlayBody');
 const toastEl = $('#toast');
 
 const params = new URLSearchParams(location.search);
@@ -43,10 +51,23 @@ const state = {
   query: '',
   concern: null,
   profile: loadProfile(),
+  /** 'onboard' | 'help' | 'quiz' | 'apply' | null */
+  overlay: null,
+  onboardStep: 0,
+  quizAnswers: {},
+  quizResult: null,
 };
 
 /** Активы, с которых женщины чаще всего начинают разбираться в сочетаниях. */
 const POPULAR = ['retinol', 'vitc', 'niacinamide', 'aha', 'bha', 'azelaic'];
+
+/** Разделы нижней навигации: id иконки совпадает с глифом в shared/icons.js. */
+const TABS = [
+  { id: 'pairs', label: 'Сочетания' },
+  { id: 'plan', label: 'Мой уход' },
+  { id: 'catalog', label: 'Активы' },
+  { id: 'me', label: 'Профиль' },
+];
 
 /** Понятные подписи вместо терминов: женщина должна понять вердикт без словаря. */
 const BUCKETS = [
@@ -65,12 +86,17 @@ function toast(text) {
 
 const onShelf = (id) => state.profile.shelf.includes(id);
 
+function tipBanner(id, text) {
+  if (state.profile.dismissedTips?.[id]) return '';
+  return `
+    <aside class="coach" data-coach="${id}">
+      <p>${esc(text)}</p>
+      <button type="button" class="coach__ok" data-dismiss-tip="${id}" aria-label="Понятно">Понятно</button>
+    </aside>`;
+}
+
 /* ---------------- Персональные пометки ---------------- */
 
-/**
- * Предупреждения под конкретную женщину: беременность и тип кожи.
- * Это единственное место, где данные справочника превращаются в личный совет.
- */
 function personalNotes(active) {
   const notes = [];
   const p = state.profile;
@@ -122,6 +148,8 @@ function pickerView() {
         <p>Выберите активный ингредиент — покажем, с чем его можно смешивать, а что развести по разным дням.</p>
       </div>
 
+      ${tipBanner('pairs-start', 'Нажмите на актив — откроются «хорошие» и «плохие» пары. Кнопка «?» сверху — инструкция по приложению.')}
+
       ${searchbar('Ретинол, витамин C, кислоты…')}
 
       ${
@@ -132,7 +160,7 @@ function pickerView() {
               <div class="chips">
                 ${POPULAR.map((id) => getActive(id))
                   .filter(Boolean)
-                  .map((a) => `<button class="chip" data-focus="${a.id}">${a.emoji} ${esc(a.name)}</button>`)
+                  .map((a) => `<button class="chip" data-focus="${a.id}">${activeIcon(a, 'sm')} ${esc(a.name)}</button>`)
                   .join('')}
               </div>
             </div>`
@@ -156,7 +184,7 @@ function pickCard(a) {
   const rel = relationsOf(a.id);
   return `
     <button class="pick" data-focus="${a.id}">
-      <span class="pick__emoji">${a.emoji}</span>
+      ${activeIcon(a, 'md')}
       <span class="pick__body">
         <b>${esc(a.name)}</b>
         <i>${esc(a.group)}</i>
@@ -172,6 +200,7 @@ function focusView(a) {
   const rel = relationsOf(a.id);
   const notes = personalNotes(a);
   const known = BUCKETS.reduce((sum, b) => sum + rel[b.level].length, 0);
+  const steps = howToPreview(a, 3);
 
   return `
     <div class="screen">
@@ -179,7 +208,7 @@ function focusView(a) {
 
       <article class="focus">
         <div class="focus__top">
-          <span class="focus__emoji">${a.emoji}</span>
+          ${activeIcon(a, 'lg')}
           <div>
             <p class="focus__group">${esc(a.group)}</p>
             <h1>${esc(a.name)}</h1>
@@ -192,6 +221,22 @@ function focusView(a) {
           <span class="sl-pill">${known} известных сочетаний</span>
         </div>
         ${noteList(notes)}
+
+        ${
+          steps.length
+            ? `<div class="howto-preview">
+                <div class="section-title">
+                  <h2>Как наносить</h2>
+                  <button type="button" data-open-apply>Общие правила</button>
+                </div>
+                <ol class="howto-preview__list">
+                  ${steps.map((s) => `<li>${esc(s)}</li>`).join('')}
+                </ol>
+                ${a.howTo.length > steps.length ? `<button type="button" class="linkish" data-detail="${a.id}">Все шаги и детали →</button>` : ''}
+              </div>`
+            : ''
+        }
+
         <div class="focus__actions">
           <button class="btn-primary" data-shelf-toggle="${a.id}">
             ${onShelf(a.id) ? '✓ В моём уходе' : '+ В мой уход'}
@@ -218,7 +263,7 @@ function bucketBlock(bucket, items) {
       <header class="bucket__head">
         <span class="bucket__icon">${L.icon}</span>
         <div>
-          <h2>${esc(bucket.title)}</h2>
+          <h2>${esc(bucket.title)} ${tipBtn(bucket.hint)}</h2>
           <p>${esc(bucket.hint)}</p>
         </div>
         <span class="bucket__count">${items.length}</span>
@@ -228,7 +273,7 @@ function bucketBlock(bucket, items) {
           .map(
             (r) => `<li>
               <button class="bucket__item" data-focus="${r.active.id}">
-                <span class="bucket__name">${r.active.emoji} ${esc(r.active.name)}</span>
+                <span class="bucket__name">${activeIcon(r.active, 'sm')} ${esc(r.active.name)}</span>
                 <span class="bucket__why">${esc(r.why)}</span>
               </button>
             </li>`
@@ -250,13 +295,14 @@ function planScreen() {
           <h1>Мой уход</h1>
           <p>Добавьте активы, которые уже используете — соберём расписание, где ничего не конфликтует.</p>
         </div>
+        ${tipBanner('plan-empty', 'Добавьте то, что уже стоит в ванной. Из набора соберём неделю: утро и вечер без конфликтующих пар.')}
         <p class="empty-note">Пока пусто. Начните с того, что стоит у вас в ванной.</p>
         <div>
           <div class="section-title"><h2>Добавить быстро</h2></div>
           <div class="chips">
             ${POPULAR.map((id) => getActive(id))
               .filter(Boolean)
-              .map((a) => `<button class="chip" data-shelf-toggle="${a.id}">+ ${a.emoji} ${esc(a.name)}</button>`)
+              .map((a) => `<button class="chip" data-shelf-toggle="${a.id}">+ ${activeIcon(a, 'sm')} ${esc(a.name)}</button>`)
               .join('')}
           </div>
         </div>
@@ -290,7 +336,7 @@ function planScreen() {
 
       <div>
         <div class="section-title">
-          <h2>Неделя без конфликтов</h2>
+          <h2>Неделя без конфликтов ${tipBtn('Сильные активы чередуем по дням. Режим «мягче» снижает частоту, пока кожа привыкает.')}</h2>
           <button data-experience-toggle>${state.profile.experience === 'start' ? 'Кожа привыкла?' : 'Начать мягче'}</button>
         </div>
         <p class="hint">${
@@ -312,9 +358,9 @@ function planScreen() {
                     const L = LEVELS[p.level];
                     return `<div class="pair pair--${L.tone}">
                         <div class="pair__head">
-                          <span>${p.a.emoji} ${esc(p.a.name)}</span>
+                          <span>${activeIcon(p.a, 'sm')} ${esc(p.a.name)}</span>
                           <span class="pair__plus">+</span>
-                          <span>${p.b.emoji} ${esc(p.b.name)}</span>
+                          <span>${activeIcon(p.b, 'sm')} ${esc(p.b.name)}</span>
                           <span class="pair__badge">${esc(L.short)}</span>
                         </div>
                         <p class="pair__why">${esc(p.why)}</p>
@@ -333,11 +379,11 @@ function planScreen() {
             .map(
               (a) => `<div class="shelf__row">
                 <button class="shelf__main" data-focus="${a.id}">
-                  <span>${a.emoji}</span>
+                  ${activeIcon(a, 'sm')}
                   <b>${esc(a.name)}</b>
                   <i>${esc(TIME_LABEL[a.time])}</i>
                 </button>
-                <button class="shelf__remove" data-shelf-toggle="${a.id}" aria-label="Убрать ${esc(a.name)}">✕</button>
+                <button class="shelf__remove" data-shelf-toggle="${a.id}" aria-label="Убрать ${esc(a.name)}">${uiIcon('close', 'sm')}</button>
               </div>`
             )
             .join('')}
@@ -345,18 +391,25 @@ function planScreen() {
       </div>
 
       <button class="btn-second" data-goto="catalog">Добавить ещё актив</button>
+      <button class="btn-second" data-open-apply>Как правильно наносить активы</button>
     </div>`;
 }
 
 function weekView(plan) {
   const slot = (items) =>
     items.length
-      ? `<div class="week__items">${items.map((a) => `<button class="week__chip" data-focus="${a.id}" title="${esc(a.name)}">${a.emoji}</button>`).join('')}</div>`
+      ? `<div class="week__items">${items
+          .map((a) => `<button class="week__chip" data-focus="${a.id}" title="${esc(a.name)}" aria-label="${esc(a.name)}">${activeIcon(a, 'sm')}</button>`)
+          .join('')}</div>`
       : '<span class="week__empty">—</span>';
 
   return `
     <div class="week">
-      <div class="week__legend"><span></span><span>☀️ Утро</span><span>🌙 Вечер</span></div>
+      <div class="week__legend">
+        <span></span>
+        <span>${uiIcon('sun', 'sm')} Утро</span>
+        <span>${uiIcon('moon', 'sm')} Вечер</span>
+      </div>
       ${plan.days
         .map(
           (d) => `<div class="week__row">
@@ -381,12 +434,14 @@ function catalogScreen() {
         <p>Что делает ингредиент, кому подходит и когда его лучше не использовать.</p>
       </div>
 
+      ${tipBanner('catalog-icons', 'Цвет иконки подсказывает группу: ретиноиды, кислоты, увлажнение и т.д. Нажмите на актив — откроется инструкция по нанесению.')}
+
       ${searchbar('Название актива')}
 
       <div class="chips">
         <button class="chip${!state.concern ? ' is-on' : ''}" data-concern="">Все задачи</button>
         ${CONCERNS.map(
-          (c) => `<button class="chip${state.concern === c.id ? ' is-on' : ''}" data-concern="${c.id}">${c.emoji} ${esc(c.label)}</button>`
+          (c) => `<button class="chip${state.concern === c.id ? ' is-on' : ''}" data-concern="${c.id}">${uiIcon(c.id, 'sm')} ${esc(c.label)}</button>`
         ).join('')}
       </div>
 
@@ -396,6 +451,10 @@ function catalogScreen() {
           : ''
       }
 
+      <div class="icon-legend" aria-label="Легенда иконок">
+        ${ICON_LEGEND.map((l) => `<span class="icon-legend__item"><i class="sl-ico sl-ico--xs sl-ico--${l.tone}"></i>${esc(l.label)}</span>`).join('')}
+      </div>
+
       <div>
         <div class="section-title"><h2>Найдено</h2><span class="sl-pill">${found.length}</span></div>
         ${
@@ -404,6 +463,8 @@ function catalogScreen() {
             : '<p class="empty-note">Ничего не нашлось. Попробуйте снять фильтры.</p>'
         }
       </div>
+
+      <button class="btn-second" data-open-apply>Общая инструкция по нанесению</button>
     </div>`;
 }
 
@@ -411,19 +472,31 @@ function catalogScreen() {
 
 function meScreen() {
   const p = state.profile;
+  const skin = SKIN_TYPES.find((t) => t.id === p.skin);
 
   return `
     <div class="screen">
       <div class="hello">
         <h1>Профиль</h1>
-        <p>Настройки влияют на предупреждения и на частоту активов в расписании.</p>
+        <p>Всё сохраняется на этом устройстве: тип кожи, задачи, набор активов и настройки.</p>
+      </div>
+
+      <div class="profile-card">
+        <div class="profile-card__row">
+          <div>
+            <b>Тип кожи</b>
+            <i>${skin ? `${uiIcon(skin.id, 'sm')} ${esc(skin.label)}` : 'Ещё не определён'}${p.quizDone ? ' · по тесту' : ''}</i>
+          </div>
+          <button class="btn-primary" data-open-quiz>${p.quizDone || p.skin ? 'Пройти тест снова' : 'Пройти тест'}</button>
+        </div>
+        <p class="hint">Тест из 6 вопросов подскажет тип кожи. Можно выбрать вручную ниже.</p>
       </div>
 
       <div>
         <div class="section-title"><h2>Тип кожи</h2>${p.skin ? '<button data-skin="">Сбросить</button>' : ''}</div>
         <div class="chips">
           ${SKIN_TYPES.map(
-            (t) => `<button class="chip${p.skin === t.id ? ' is-on' : ''}" data-skin="${t.id}">${t.emoji} ${esc(t.label)}</button>`
+            (t) => `<button class="chip${p.skin === t.id ? ' is-on' : ''}" data-skin="${t.id}">${uiIcon(t.id, 'sm')} ${esc(t.label)}</button>`
           ).join('')}
         </div>
       </div>
@@ -432,14 +505,14 @@ function meScreen() {
         <div class="section-title"><h2>Что хотите решить</h2></div>
         <div class="chips">
           ${CONCERNS.map(
-            (c) => `<button class="chip${p.concerns.includes(c.id) ? ' is-on' : ''}" data-concern-toggle="${c.id}">${c.emoji} ${esc(c.label)}</button>`
+            (c) => `<button class="chip${p.concerns.includes(c.id) ? ' is-on' : ''}" data-concern-toggle="${c.id}">${uiIcon(c.id, 'sm')} ${esc(c.label)}</button>`
           ).join('')}
         </div>
       </div>
 
       <div class="switch-row">
         <div>
-          <b>Беременность или лактация</b>
+          <b>Беременность или лактация ${tipBtn('Мы покажем предупреждения у активов, которые в этот период обычно не применяют.')}</b>
           <i>Предупредим про активы, которые в этот период не применяют.</i>
         </div>
         <button class="switch${p.pregnant ? ' is-on' : ''}" data-pregnant-toggle aria-pressed="${p.pregnant}">
@@ -449,12 +522,18 @@ function meScreen() {
 
       <div class="switch-row">
         <div>
-          <b>Кожа уже привыкла к активам</b>
+          <b>Кожа уже привыкла к активам ${tipBtn('Влияет только на частоту сильных активов в недельном плане «Мой уход».')}</b>
           <i>Влияет на частоту сильных активов в недельном плане.</i>
         </div>
         <button class="switch${p.experience === 'adapted' ? ' is-on' : ''}" data-experience-toggle aria-pressed="${p.experience === 'adapted'}">
           <span></span>
         </button>
+      </div>
+
+      <div class="help-links">
+        <button class="help-link" data-open-help><span>${uiIcon('catalog', 'md')}</span> Как пользоваться приложением</button>
+        <button class="help-link" data-open-apply><span>${uiIcon('bottle', 'md')}</span> Как наносить активы</button>
+        <button class="help-link" data-open-onboard><span>${uiIcon('sparkle', 'md')}</span> Показать знакомство снова</button>
       </div>
 
       <section class="about">
@@ -468,6 +547,7 @@ function meScreen() {
           Приложение не ставит диагнозы и не заменяет врача. При розацеа, обострении дерматита,
           беременности и приёме системных препаратов схему ухода согласуют с дерматологом.
         </p>
+        <p class="hint">Данные профиля хранятся только в браузере на этом устройстве (localStorage).</p>
       </section>
 
       <button class="btn-second" id="installInline" hidden>Установить приложение</button>
@@ -477,14 +557,153 @@ function meScreen() {
     </div>`;
 }
 
+/* ---------------- Оверлеи: онбординг, помощь, квиз, нанесение ---------------- */
+
+function openOverlay(kind) {
+  state.overlay = kind;
+  if (kind === 'onboard') state.onboardStep = 0;
+  if (kind === 'quiz') {
+    state.quizAnswers = {};
+    state.quizResult = null;
+  }
+  renderOverlay();
+}
+
+function closeOverlay({ persistOnboard = false } = {}) {
+  if (persistOnboard || state.overlay === 'onboard') {
+    state.profile = saveProfile({ onboarded: true });
+  }
+  state.overlay = null;
+  overlay.hidden = true;
+  document.body.style.overflow = sheet.hidden ? '' : 'hidden';
+}
+
+function renderOverlay() {
+  if (!state.overlay) {
+    overlay.hidden = true;
+    return;
+  }
+  const builders = {
+    onboard: onboardMarkup,
+    help: helpMarkup,
+    quiz: quizMarkup,
+    apply: applyMarkup,
+  };
+  overlayBody.innerHTML = (builders[state.overlay] || helpMarkup)();
+  overlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+  $('.overlay__panel', overlay).scrollTop = 0;
+}
+
+function onboardMarkup() {
+  const step = APP_GUIDE_STEPS[state.onboardStep];
+  const last = state.onboardStep >= APP_GUIDE_STEPS.length - 1;
+  return `
+    <div class="onboard">
+      <p class="onboard__eyebrow">Знакомство · ${state.onboardStep + 1} из ${APP_GUIDE_STEPS.length}</p>
+      <div class="onboard__icon" aria-hidden="true">${uiIcon(step.icon, 'xl')}</div>
+      <h2 id="overlayTitle">${esc(step.title)}</h2>
+      <p>${esc(step.text)}</p>
+      <div class="onboard__dots" aria-hidden="true">
+        ${APP_GUIDE_STEPS.map((_, i) => `<i class="${i === state.onboardStep ? 'is-on' : ''}"></i>`).join('')}
+      </div>
+      <div class="onboard__actions">
+        ${
+          state.onboardStep > 0
+            ? `<button type="button" class="btn-second" data-onboard-prev>Назад</button>`
+            : `<button type="button" class="btn-second" data-overlay-close>Пропустить</button>`
+        }
+        <button type="button" class="btn-primary" data-onboard-next>${last ? 'Начать' : 'Дальше'}</button>
+      </div>
+    </div>`;
+}
+
+function helpMarkup() {
+  return `
+    <div class="help">
+      <h2 id="overlayTitle">Как пользоваться SkinLab</h2>
+      <p class="help__lead">Коротко по разделам — этого достаточно, чтобы ориентироваться.</p>
+      <ol class="help__steps">
+        ${APP_GUIDE_STEPS.map(
+          (s) => `<li>
+            <span class="help__icon" aria-hidden="true">${uiIcon(s.icon, 'md')}</span>
+            <div><b>${esc(s.title)}</b><p>${esc(s.text)}</p></div>
+          </li>`
+        ).join('')}
+      </ol>
+      <button type="button" class="btn-primary" data-overlay-close>Понятно</button>
+      <button type="button" class="btn-second" data-open-apply>Как наносить активы</button>
+    </div>`;
+}
+
+function applyMarkup() {
+  return `
+    <div class="help">
+      <h2 id="overlayTitle">Как наносить активы</h2>
+      <p class="help__lead">Общий порядок слоёв. У каждого актива в карточке — своя пошаговая инструкция.</p>
+      ${applyGuideView()}
+      <button type="button" class="btn-primary" data-overlay-close>Понятно</button>
+    </div>`;
+}
+
+function quizMarkup() {
+  if (state.quizResult) {
+    const r = state.quizResult;
+    const skinMeta = SKIN_TYPES.find((t) => t.id === r.skin);
+    return `
+      <div class="quiz">
+        <p class="onboard__eyebrow">Результат теста</p>
+        <div class="quiz__result-icon" aria-hidden="true">${uiIcon(skinMeta?.id || 'sparkle', 'xl')}</div>
+        <h2 id="overlayTitle">${esc(r.title)}</h2>
+        <p>${esc(r.text)}</p>
+        ${
+          r.confident
+            ? ''
+            : '<p class="hint">Результат на границе двух типов — можно скорректировать вручную в профиле.</p>'
+        }
+        <div class="onboard__actions">
+          <button type="button" class="btn-second" data-quiz-restart>Пройти снова</button>
+          <button type="button" class="btn-primary" data-quiz-apply="${r.skin}">Сохранить тип кожи</button>
+        </div>
+      </div>`;
+  }
+
+  const { done, total } = quizProgress(state.quizAnswers);
+  const current = QUIZ_QUESTIONS.find((q) => !state.quizAnswers[q.id]);
+  if (!current) {
+    const r = scoreQuiz(state.quizAnswers);
+    state.quizResult = r;
+    return quizMarkup();
+  }
+
+  return `
+    <div class="quiz">
+      <p class="onboard__eyebrow">Тест типа кожи · ${done + 1} из ${total}</p>
+      <div class="quiz__bar" aria-hidden="true"><i style="width:${Math.round((done / total) * 100)}%"></i></div>
+      <h2 id="overlayTitle">${esc(current.title)}</h2>
+      <div class="quiz__options">
+        ${current.options
+          .map(
+            (o) => `<button type="button" class="quiz__opt" data-quiz-answer="${current.id}:${o.id}">
+              ${esc(o.label)}
+            </button>`
+          )
+          .join('')}
+      </div>
+      <div class="onboard__actions">
+        <button type="button" class="btn-second" data-overlay-close>Закрыть</button>
+      </div>
+    </div>`;
+}
+
 /* ---------------- Общее ---------------- */
 
 function searchbar(placeholder) {
   return `
     <div class="searchbar">
-      <span class="searchbar__icon">🔍</span>
+      <span class="searchbar__icon" aria-hidden="true">${uiIcon('search', 'md')}</span>
       <input id="q" type="search" value="${esc(state.query)}" placeholder="${esc(placeholder)}" aria-label="Поиск" />
-      ${state.query ? '<button class="searchbar__clear" data-clear-query aria-label="Очистить">✕</button>' : ''}
+      ${state.query ? `<button class="searchbar__clear" data-clear-query aria-label="Очистить">${uiIcon('close', 'sm')}</button>` : ''}
     </div>`;
 }
 
@@ -498,10 +717,18 @@ function plural(n, one, few, many) {
 
 const SCREENS = { pairs: pairsScreen, plan: planScreen, catalog: catalogScreen, me: meScreen };
 
+function renderTabbar() {
+  tabbar.innerHTML = TABS.map(
+    (t) => `<button type="button" data-tab="${t.id}"${state.tab === t.id ? ' class="is-active" aria-current="page"' : ''}>
+      <span class="tabbar__ico">${uiIcon(t.id, 'lg')}</span>${esc(t.label)}
+    </button>`
+  ).join('');
+}
+
 function render({ keepScroll = false } = {}) {
   const top = view.scrollTop;
   view.innerHTML = (SCREENS[state.tab] || pairsScreen)();
-  $$('#tabbar button').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === state.tab));
+  renderTabbar();
   view.scrollTop = keepScroll ? top : 0;
   if (state.tab === 'me') setupInstall($('#installInline'), { onHint: toast });
 }
@@ -537,13 +764,85 @@ function openDetail(id) {
 
 function closeSheet() {
   sheet.hidden = true;
-  document.body.style.overflow = '';
+  if (overlay.hidden) document.body.style.overflow = '';
 }
 
 /* ---------------- События ---------------- */
 
 document.addEventListener('click', (e) => {
   const t = e.target;
+
+  const tipToggle = t.closest('[data-tip-toggle]');
+  if (tipToggle) {
+    const open = tipToggle.getAttribute('aria-expanded') === 'true';
+    $$('[data-tip-toggle][aria-expanded="true"]').forEach((el) => {
+      if (el !== tipToggle) el.setAttribute('aria-expanded', 'false');
+    });
+    tipToggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    return;
+  }
+
+  if (t.closest('#helpBtn')) return openOverlay('help');
+
+  if (t.closest('[data-open-help]')) return openOverlay('help');
+  if (t.closest('[data-open-onboard]')) return openOverlay('onboard');
+  if (t.closest('[data-open-apply]')) return openOverlay('apply');
+  if (t.closest('[data-open-quiz]')) return openOverlay('quiz');
+
+  if (t.closest('[data-overlay-close]')) {
+    closeOverlay({ persistOnboard: state.overlay === 'onboard' });
+    return;
+  }
+
+  if (t.closest('[data-onboard-next]')) {
+    if (state.onboardStep >= APP_GUIDE_STEPS.length - 1) {
+      closeOverlay({ persistOnboard: true });
+      toast('Готово — можно выбирать актив');
+      return render();
+    }
+    state.onboardStep += 1;
+    return renderOverlay();
+  }
+
+  if (t.closest('[data-onboard-prev]')) {
+    state.onboardStep = Math.max(0, state.onboardStep - 1);
+    return renderOverlay();
+  }
+
+  const quizAnswer = t.closest('[data-quiz-answer]');
+  if (quizAnswer) {
+    const [qid, oid] = quizAnswer.dataset.quizAnswer.split(':');
+    state.quizAnswers = { ...state.quizAnswers, [qid]: oid };
+    const { done, total } = quizProgress(state.quizAnswers);
+    if (done === total) state.quizResult = scoreQuiz(state.quizAnswers);
+    return renderOverlay();
+  }
+
+  if (t.closest('[data-quiz-restart]')) {
+    state.quizAnswers = {};
+    state.quizResult = null;
+    return renderOverlay();
+  }
+
+  const quizApply = t.closest('[data-quiz-apply]');
+  if (quizApply) {
+    state.profile = saveProfile({
+      skin: quizApply.dataset.quizApply,
+      quizDone: true,
+      quizAnswers: state.quizAnswers,
+    });
+    closeOverlay();
+    state.tab = 'me';
+    syncUrl();
+    render();
+    return toast('Тип кожи сохранён в профиле');
+  }
+
+  const dismiss = t.closest('[data-dismiss-tip]');
+  if (dismiss) {
+    state.profile = dismissTip(dismiss.dataset.dismissTip);
+    return render({ keepScroll: true });
+  }
 
   const tab = t.closest('[data-tab]');
   if (tab) return go(tab.dataset.tab, { focus: null });
@@ -627,7 +926,7 @@ document.addEventListener('click', (e) => {
   }
 
   if (t.closest('[data-reset]')) {
-    state.profile = saveProfile({ skin: null, concerns: [], shelf: [], pregnant: false, experience: 'start' });
+    state.profile = resetProfile();
     render();
     return toast('Настройки сброшены');
   }
@@ -648,9 +947,15 @@ document.addEventListener('input', (e) => {
 });
 
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !sheet.hidden) closeSheet();
+  if (e.key !== 'Escape') return;
+  if (!overlay.hidden) return closeOverlay({ persistOnboard: state.overlay === 'onboard' });
+  if (!sheet.hidden) closeSheet();
 });
 
 render();
 registerSW();
 setupInstall($('#install'), { onHint: toast });
+
+if (!state.profile.onboarded) {
+  openOverlay('onboard');
+}
