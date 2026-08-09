@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SkinLab · Bubble</title>
+    <meta name="description" content="Справочник уход-активов: применение, противопоказания, сочетания и типы кожи." />
+    <meta name="theme-color" content="#f4eeff" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+    <link rel="icon" href="/assets/favicon-64.png" />
+    <link rel="stylesheet" href="/assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="/shared/base.css" />
+    <link rel="stylesheet" href="./theme.css" />
+  </head>
+  <body>
+    <div class="bubbles" aria-hidden="true">
+      <span class="bubbles__b bubbles__b--1"></span>
+      <span class="bubbles__b bubbles__b--2"></span>
+      <span class="bubbles__b bubbles__b--3"></span>
+    </div>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <a class="mark" href="/"><span class="mark__icon">🫧</span><span class="mark__text">SkinLab</span></a>
+
+        <nav class="menu" id="nav" aria-label="Разделы">
+          <button data-tab="home" class="is-active"><span>🏠</span>Главная</button>
+          <button data-tab="catalog"><span>🧴</span>Активы</button>
+          <button data-tab="scan"><span>📸</span>Сканер</button>
+          <button data-tab="mix"><span>🧪</span>Миксер</button>
+        </nav>
+
+        <button class="install-card" id="install" hidden>
+          <b>Поставить на телефон</b>
+          <span>Работает офлайн, как обычное приложение</span>
+        </button>
+      </aside>
+
+      <main class="content" id="view" tabindex="-1"></main>
+    </div>
+
+    <div class="sheet" id="sheet" hidden>
+      <div class="sheet__scrim" data-close></div>
+      <section class="sheet__panel" role="dialog" aria-modal="true" aria-label="Карточка актива">
+        <div class="sheet__grip"></div>
+        <button class="sheet__close" data-close aria-label="Закрыть">✕</button>
+        <div id="sheetBody"></div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
