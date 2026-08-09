@@ -107,6 +107,10 @@ body {
   border-bottom: 1px solid var(--line);
 }
 
+.head > .sl-hscroll {
+  justify-self: center;
+}
+
 .logo {
   display: flex;
   align-items: center;
@@ -188,6 +192,11 @@ body {
     order: 3;
     overflow-x: auto;
     scrollbar-width: none;
+  }
+  /* Обёртка полосы прокрутки занимает место самой ленты в сетке шапки. */
+  .head > .sl-hscroll {
+    grid-column: 1 / -1;
+    order: 3;
   }
   .pillnav::-webkit-scrollbar {
     display: none;
