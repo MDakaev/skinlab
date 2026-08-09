@@ -8,7 +8,7 @@
       name="description"
       content="Подскажем, какие активы в уходе за кожей сочетаются друг с другом, какие нельзя наносить вместе и как разложить их по дням недели."
     />
-    <meta name="theme-color" content="#7E9A80" />
+    <meta name="theme-color" content="#7a774a" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <link rel="icon" href="/assets/favicon-64.png" />
@@ -24,31 +24,42 @@
       <div class="phone">
         <header class="topbar">
           <a class="brand" href="?tab=pairs">
-            <span class="brand__mark">◍</span>
+            <span class="brand__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <circle cx="9.2" cy="12" r="5.2" />
+                <circle cx="14.8" cy="12" r="5.2" />
+              </svg>
+            </span>
             <span>
               <b>SkinLab</b>
               <i>сочетания</i>
             </span>
           </a>
-          <button class="ghost-btn" id="install" hidden>Установить</button>
+          <div class="topbar__actions">
+            <button class="ghost-btn ghost-btn--icon" id="helpBtn" type="button" aria-label="Как пользоваться">?</button>
+            <button class="ghost-btn" id="install" hidden>Установить</button>
+          </div>
         </header>
 
         <main class="view" id="view" tabindex="-1"></main>
 
-        <nav class="tabbar" id="tabbar" aria-label="Разделы">
-          <button data-tab="pairs" class="is-active"><span>🤝</span>Сочетания</button>
-          <button data-tab="plan"><span>🗓️</span>Мой уход</button>
-          <button data-tab="catalog"><span>📖</span>Активы</button>
-          <button data-tab="me"><span>🌸</span>Профиль</button>
-        </nav>
+        <nav class="tabbar" id="tabbar" aria-label="Разделы"></nav>
       </div>
     </div>
 
     <div class="sheet" id="sheet" hidden>
       <div class="sheet__scrim" data-close></div>
       <section class="sheet__panel" role="dialog" aria-modal="true" aria-label="Карточка актива">
-        <button class="sheet__close" data-close aria-label="Закрыть">✕</button>
+        <button class="sheet__close" data-close aria-label="Закрыть"><svg class="sl-uico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.8 6.8 10.4 10.4M17.2 6.8 6.8 17.2"/></svg></button>
         <div class="sheet__body" id="sheetBody"></div>
+      </section>
+    </div>
+
+    <div class="overlay" id="overlay" hidden>
+      <div class="overlay__scrim" data-overlay-close></div>
+      <section class="overlay__panel" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
+        <button class="overlay__close" data-overlay-close aria-label="Закрыть"><svg class="sl-uico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.8 6.8 10.4 10.4M17.2 6.8 6.8 17.2"/></svg></button>
+        <div class="overlay__body" id="overlayBody"></div>
       </section>
     </div>
 

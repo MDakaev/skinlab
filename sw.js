@@ -1,5 +1,5 @@
 /* Service worker: оболочка приложения работает офлайн. */
-const VERSION = 'skinlab-v3';
+const VERSION = 'skinlab-v5';
 const SHELL = [
   '/',
   '/index.html',
@@ -10,6 +10,9 @@ const SHELL = [
   '/shared/content.js',
   '/shared/schedule.js',
   '/shared/pwa.js',
+  '/shared/icons.js',
+  '/shared/quiz.js',
+  '/shared/guide.js',
   '/manifest.webmanifest',
   '/assets/icon-192.png',
   '/assets/icon-512.png',
@@ -51,17 +54,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Статика: отдаём из кэша и обновляем в фоне.
+  // Статика: сеть в приоритете, кэш — запасной вариант офлайна.
+  // Так свежие стили и скрипты появляются сразу, без «залипшего» кэша.
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const network = fetch(request)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(VERSION).then((c) => c.put(request, copy));
-          return res;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    fetch(request)
+      .then((res) => {
+        const copy = res.clone();
+        caches.open(VERSION).then((c) => c.put(request, copy));
+        return res;
+      })
+      .catch(() => caches.match(request))
   );
 });
