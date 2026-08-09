@@ -267,36 +267,77 @@
         font-size: 12.5px;
         color: var(--muted);
       }
+
+      .cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 28px;
+        padding: 16px 26px;
+        border-radius: 99px;
+        background: #7e9a80;
+        color: #fff;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 15.5px;
+        box-shadow: 0 20px 40px -22px rgba(126, 154, 128, 0.9);
+        transition: transform 0.3s var(--ease);
+      }
+
+      .cta:hover {
+        transform: translateY(-2px);
+      }
+
+      .archive-head {
+        margin: 52px 0 0;
+        padding-top: 28px;
+        border-top: 1px solid var(--line);
+      }
+
+      .archive-head h2 {
+        font-family: 'Playfair Display', Georgia, serif;
+        font-size: 24px;
+        letter-spacing: -0.02em;
+      }
+
+      .archive-head p {
+        font-size: 13.5px;
+        color: var(--muted);
+        margin-top: 8px;
+        max-width: 60ch;
+        line-height: 1.55;
+      }
     </style>
   </head>
   <body>
     <div class="wrap">
-      <p class="kicker">Прототип · 4 варианта дизайна</p>
-      <h1>SkinLab — справочник уход-активов</h1>
+      <p class="kicker">Сервис сочетаний</p>
+      <h1>Что с чем сочетать в уходе за кожей</h1>
       <p class="lead">
-        Один и тот же продукт в четырёх визуальных решениях. Внутри каждого: поиск по названию средства,
-        сканер упаковки через камеру, карточки активов с противопоказаниями и проверка сочетаний.
-        Данные и логика общие — отличается только оформление и структура интерфейса.
+        Выбираете активный ингредиент — видите, с чем его можно наносить вместе, а что развести
+        по разным вечерам. Добавляете свои средства — получаете расписание на неделю, в котором
+        конфликтующие активы не пересекаются. Пары не придумываются: если у сочетания нет
+        подтверждения в источниках, его в приложении не будет.
       </p>
 
-      <div class="grid">
-        <a class="card" href="/m1-botanica/">
-          <div class="card__preview p1">
-            <div class="card__phone">
-              <div class="bar"></div>
-              <div class="bar b2"></div>
-              <div class="blk"></div>
-              <div class="row"><div class="blk"></div><div class="blk"></div></div>
-            </div>
-          </div>
-          <div class="card__body">
-            <p class="card__num">Макет 01</p>
-            <h2 class="card__title">Botanica</h2>
-            <p class="card__text">Мобильное приложение в спокойной ботанической палитре: нижняя навигация, шторки, мягкие карточки.</p>
-            <div class="card__tags"><span class="tag">мобильный шелл</span><span class="tag">пастель</span><span class="tag">серифы</span></div>
-          </div>
-        </a>
+      <a class="cta" href="/m1-botanica/?tab=pairs">Открыть приложение →</a>
 
+      <div class="facts" style="margin-top: 44px">
+        <div class="fact"><b>Сочетания по группам</b><span>Отличная пара, совместимы, осторожно, не вместе — с объяснением причины.</span></div>
+        <div class="fact"><b>Неделя без конфликтов</b><span>Расписание само разводит активы по времени суток и по дням.</span></div>
+        <div class="fact"><b>Личные предупреждения</b><span>Учитываем тип кожи и беременность, а не выдаём общий совет всем.</span></div>
+        <div class="fact"><b>PWA</b><span>Ставится на телефон из браузера, работает офлайн после первого открытия.</span></div>
+      </div>
+
+      <div class="archive-head">
+        <h2>Архив вариантов дизайна</h2>
+        <p>
+          Ранние визуальные решения того же продукта. Оставлены для истории: рабочая версия —
+          Botanica, остальные не развиваются.
+        </p>
+      </div>
+
+      <div class="grid">
         <a class="card" href="/m2-editorial/">
           <div class="card__preview p2">
             <div class="card__phone">
@@ -347,13 +388,6 @@
             <div class="card__tags"><span class="tag">пузырьки</span><span class="tag">яркий</span><span class="tag">простой</span></div>
           </div>
         </a>
-      </div>
-
-      <div class="facts">
-        <div class="fact"><b>PWA</b><span>Устанавливается на телефон с браузера, работает офлайн после первого открытия.</span></div>
-        <div class="fact"><b>Камера</b><span>Превью с камеры настоящее, распознавание состава пока заглушка на демо-данных.</span></div>
-        <div class="fact"><b>24 актива</b><span>Применение, противопоказания, типы кожи, побочные эффекты и сочетания.</span></div>
-        <div class="fact"><b>Общая логика</b><span>Все макеты используют одну базу данных и один движок совместимости.</span></div>
       </div>
 
       <footer>Информация носит справочный характер и не заменяет консультацию дерматолога.</footer>

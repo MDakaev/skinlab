@@ -10,11 +10,11 @@ const ruleMap = new Map(RULES.map(([a, b, level, why]) => [ruleKey(a, b), { leve
 
 const LEVEL_WEIGHT = { great: 0, ok: 1, caution: 2, avoid: 3 };
 
-/** Совместимость двух активов. Незаданные пары считаются нейтрально совместимыми. */
+/** Совместимость двух активов. Для незаданных пар данных нет — это НЕ подтверждённая безопасность. */
 export function getPair(idA, idB) {
   if (idA === idB) return null;
   const found = ruleMap.get(ruleKey(idA, idB));
-  return found || { level: 'ok', why: 'Известных конфликтов нет — сочетание считается нейтральным. Вводите новый актив по одному и следите за реакцией.' };
+  return found || { level: 'ok', assumed: true, why: 'В нашей базе нет выверенного правила для этой пары — это не значит «безопасно». Вводите новый актив по одному, следите за реакцией и при сомнениях разносите по времени.' };
 }
 
 /** Все известные связи актива, разложенные по уровням. */
@@ -106,19 +106,17 @@ export function filterActives({ skin = null, concern = null, group = null } = {}
 
 export const groups = () => [...new Set(ACTIVES.map((a) => a.group))];
 
-/**
- * Заглушка распознавания по фото.
- * Реального ML тут нет: имитируем задержку и возвращаем случайный товар из каталога.
- */
-export function mockRecognize() {
-  const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
-  const confidence = 0.72 + Math.random() * 0.26;
-  return new Promise((resolve) => setTimeout(() => resolve({ product, confidence }), 1400 + Math.random() * 900));
-}
-
 /** Профиль пользователя в localStorage — общий для всех макетов. */
 const STORE_KEY = 'skinlab.profile.v1';
-const defaults = { skin: null, concerns: [], shelf: [] };
+const defaults = {
+  skin: null,
+  concerns: [],
+  /** Активы, которые женщина уже использует — из них строится план ухода. */
+  shelf: [],
+  pregnant: false,
+  /** 'start' — кожа не адаптирована, 'adapted' — активы уже вводились. */
+  experience: 'start',
+};
 
 export function loadProfile() {
   try {

@@ -3,8 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>SkinLab · Botanica</title>
-    <meta name="description" content="Справочник уход-активов: применение, противопоказания, сочетания и типы кожи." />
+    <title>SkinLab — что с чем сочетать в уходе за кожей</title>
+    <meta
+      name="description"
+      content="Подскажем, какие активы в уходе за кожей сочетаются друг с другом, какие нельзя наносить вместе и как разложить их по дням недели."
+    />
     <meta name="theme-color" content="#7E9A80" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
@@ -20,11 +23,11 @@
 
       <div class="phone">
         <header class="topbar">
-          <a class="brand" href="/">
+          <a class="brand" href="?tab=pairs">
             <span class="brand__mark">◍</span>
             <span>
               <b>SkinLab</b>
-              <i>botanica</i>
+              <i>сочетания</i>
             </span>
           </a>
           <button class="ghost-btn" id="install" hidden>Установить</button>
@@ -33,10 +36,10 @@
         <main class="view" id="view" tabindex="-1"></main>
 
         <nav class="tabbar" id="tabbar" aria-label="Разделы">
-          <button data-tab="home" class="is-active"><span>🏡</span>Главная</button>
+          <button data-tab="pairs" class="is-active"><span>🤝</span>Сочетания</button>
+          <button data-tab="plan"><span>🗓️</span>Мой уход</button>
           <button data-tab="catalog"><span>📖</span>Активы</button>
-          <button data-tab="scan"><span>📷</span>Сканер</button>
-          <button data-tab="mix"><span>🧪</span>Пара</button>
+          <button data-tab="me"><span>🌸</span>Профиль</button>
         </nav>
       </div>
     </div>

@@ -13,7 +13,6 @@ import {
   toggleShelf,
 } from '/shared/engine.js';
 import { productCard, activeDetail, comboResult, routineView, esc } from '/shared/content.js';
-import { createScanner } from '/shared/scanner.js';
 import { registerSW, setupInstall } from '/shared/pwa.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -30,10 +29,7 @@ const state = {
   concern: null,
   mix: [],
   profile: loadProfile(),
-  scan: null,
 };
-
-let scanner = null;
 
 function toast(text) {
   toastEl.textContent = text;
@@ -45,7 +41,7 @@ function toast(text) {
 const finder = (placeholder) => `
   <div class="finder">
     <input id="q" type="search" value="${esc(state.query)}" placeholder="${esc(placeholder)}" aria-label="Поиск" />
-    <button class="finder__cam" data-goto="scan" aria-label="Сканировать упаковку">📸</button>
+    <button class="finder__cam" data-goto="mix" aria-label="Проверить сочетание">🧪</button>
   </div>`;
 
 const bubbles = (list) => `
@@ -79,7 +75,6 @@ function homePage() {
       ${finder('Введите название средства или актива')}
 
       <div class="tips">
-        <button class="tip-card" data-goto="scan"><span>📸</span><b>Сканер</b><i>Наведите камеру на упаковку — разберём состав</i></button>
         <button class="tip-card" data-goto="mix"><span>🧪</span><b>Миксер</b><i>Проверьте, дружат ли ваши средства между собой</i></button>
         <button class="tip-card" data-goto="catalog"><span>📚</span><b>Каталог</b><i>${ACTIVES.length} активов с полным разбором</i></button>
       </div>
@@ -151,51 +146,6 @@ function catalogPage() {
     </div>`;
 }
 
-function scanPage() {
-  const r = state.scan;
-  return `
-    <div class="page">
-      <section class="hero">
-        <span class="hero__emoji">📸</span>
-        <h1>Сканируем упаковку</h1>
-        <p>Демо-режим: камера работает, а распознавание состава появится позже.</p>
-      </section>
-
-      <section class="panel scan-panel">
-        <div class="sl-scan-stage" id="stage">
-          <video id="video" playsinline muted></video>
-          <canvas id="canvas" hidden></canvas>
-          <div class="sl-scan-frame"></div>
-          <div class="sl-scan-hint" id="hint">Камера выключена</div>
-        </div>
-
-        <div class="btn-row">
-          <button class="btn" id="shot">Сделать снимок</button>
-          <button class="btn btn--soft" id="pickFile">Загрузить фото</button>
-          <input type="file" id="file" accept="image/*" capture="environment" hidden />
-        </div>
-        <p class="sl-demo-note">Результат подставляется из тестового каталога средств.</p>
-      </section>
-
-      ${
-        r
-          ? `<section class="panel result">
-              <div class="result__top">
-                ${r.frame ? `<img class="result__shot" src="${r.frame}" alt="Кадр" />` : '<div class="result__shot"></div>'}
-                <div>
-                  <p class="result__brand">${esc(r.product.brand)} · ${esc(r.product.type)}</p>
-                  <p class="result__name">${esc(r.product.name)}</p>
-                  <p class="result__brand">совпадение ${Math.round(r.confidence * 100)}% · демо</p>
-                </div>
-              </div>
-              ${bubbles(r.product.actives.map(getActive))}
-              <button class="btn btn--soft" data-add-all='${JSON.stringify(r.product.actives)}'>Отправить состав в миксер</button>
-            </section>`
-          : ''
-      }
-    </div>`;
-}
-
 function mixPage() {
   const result = checkCombo(state.mix);
   const rest = ACTIVES.filter((a) => !state.mix.includes(a.id));
@@ -240,16 +190,13 @@ function mixPage() {
 
 /* ---------------- Рендер ---------------- */
 
-const PAGES = { home: homePage, catalog: catalogPage, scan: scanPage, mix: mixPage };
+const PAGES = { home: homePage, catalog: catalogPage, mix: mixPage };
 
 function render({ keepScroll = false } = {}) {
   const top = window.scrollY;
-  scanner?.stop();
-  scanner = null;
   view.innerHTML = PAGES[state.tab]();
   $$('#nav button').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === state.tab));
   window.scrollTo({ top: keepScroll ? top : 0 });
-  if (state.tab === 'scan') initScanner();
   syncShelfButtons();
 }
 
@@ -280,28 +227,6 @@ function closeSheet() {
 
 function syncShelfButtons() {
   $$('[data-shelf]').forEach((b) => b.setAttribute('aria-pressed', String(state.profile.shelf.includes(b.dataset.shelf))));
-}
-
-function initScanner() {
-  const stage = $('#stage');
-  scanner = createScanner({
-    video: $('#video'),
-    canvas: $('#canvas'),
-    onStatus: (kind, text) => {
-      $('#hint').textContent = text;
-      stage.classList.toggle('is-scanning', kind === 'scanning');
-      $('#shot').disabled = kind === 'scanning' || kind === 'loading';
-    },
-    onResult: (res) => {
-      state.scan = res;
-      render();
-      toast('Демо-распознавание: подставлен товар из каталога');
-    },
-  });
-  scanner.start();
-  $('#shot').addEventListener('click', () => scanner.capture());
-  $('#pickFile').addEventListener('click', () => $('#file').click());
-  $('#file').addEventListener('change', (e) => scanner.fromFile(e.target.files[0]));
 }
 
 /* ---------------- События ---------------- */

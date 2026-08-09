@@ -56,6 +56,19 @@ const section = (title, inner, mod = '') =>
 const bullets = (items, mod = '') =>
   `<ul class="sl-list${mod ? ` sl-list--${mod}` : ''}">${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>`;
 
+/** Блок проверяемых источников. Показывается только если они заданы. */
+const sourcesBlock = (sources) => {
+  if (!Array.isArray(sources) || !sources.length) return '';
+  const items = sources
+    .filter((s) => s && s.url)
+    .map(
+      (s) =>
+        `<li><a class="sl-source" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title || s.url)}</a></li>`
+    )
+    .join('');
+  return section('Источники', `<ul class="sl-sources">${items}</ul>`);
+};
+
 /** Полная карточка актива: всё, что нужно знать перед применением. */
 export function activeDetail(a) {
   const rel = relationsOf(a.id);
@@ -95,7 +108,7 @@ export function activeDetail(a) {
       <span class="sl-detail__emoji" aria-hidden="true">${a.emoji}</span>
       <div>
         <p class="sl-detail__group">${esc(a.group)}</p>
-        <h2 class="sl-detail__title">${esc(a.name)}</h2>
+        <h2 class="sl-detail__title">${esc(a.name)}${a.drug ? ' <span class="sl-badge sl-badge--drug">Лекарство</span>' : ''}</h2>
         <p class="sl-detail__inci">${esc(a.inci)}</p>
       </div>
       <button class="sl-shelf-btn" data-shelf="${a.id}" aria-pressed="false">
@@ -127,6 +140,7 @@ export function activeDetail(a) {
     ${section('Сочетания', `<div class="sl-rels">${['great', 'ok', 'caution', 'avoid'].map(relBlock).join('')}</div>`)}
 
     <aside class="sl-tip"><span class="sl-tip__mark">Совет</span><p>${esc(a.tip)}</p></aside>
+    ${sourcesBlock(a.sources)}
     <p class="sl-disclaimer">Информация носит справочный характер и не заменяет консультацию дерматолога.</p>
   `;
 }

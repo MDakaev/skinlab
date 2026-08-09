@@ -1,5 +1,5 @@
 /* Service worker: оболочка приложения работает офлайн. */
-const VERSION = 'skinlab-v2';
+const VERSION = 'skinlab-v3';
 const SHELL = [
   '/',
   '/index.html',
@@ -8,7 +8,7 @@ const SHELL = [
   '/shared/data.js',
   '/shared/engine.js',
   '/shared/content.js',
-  '/shared/scanner.js',
+  '/shared/schedule.js',
   '/shared/pwa.js',
   '/manifest.webmanifest',
   '/assets/icon-192.png',
