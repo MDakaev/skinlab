@@ -14,6 +14,7 @@ import {
 } from '/shared/engine.js';
 import { productCard, activeDetail, comboResult, routineView, esc } from '/shared/content.js';
 import { registerSW, setupInstall } from '/shared/pwa.js';
+import { enhanceHScroll } from '/shared/hscroll.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -197,6 +198,7 @@ function render({ keepScroll = false } = {}) {
   view.innerHTML = PAGES[state.tab]();
   $$('#nav button').forEach((b) => b.classList.toggle('is-active', b.dataset.tab === state.tab));
   window.scrollTo({ top: keepScroll ? top : 0 });
+  enhanceHScroll(document);
   syncShelfButtons();
 }
 

@@ -3,6 +3,10 @@
 node_modules/
 *.log
 
+# артефакты ручного QA: скриншоты и профили headless Chrome
+.shots/
+.verify/
+
 # backend
 data/
 *.db

@@ -1148,6 +1148,88 @@ canvas {
   gap: 8px;
 }
 
+/* ---------- Горизонтальные ленты: своя полоса прокрутки со стрелками ---------- */
+
+.sl-hscroll {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Родной скроллбар прячем — вместо него своя полоса под лентой. */
+.sl-hscroll__track {
+  scrollbar-width: none;
+}
+
+.sl-hscroll__track::-webkit-scrollbar {
+  display: none;
+}
+
+.sl-hscroll__bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.sl-hscroll.is-overflow .sl-hscroll__bar {
+  display: flex;
+}
+
+.sl-hscroll__arrow {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: var(--muted);
+  transition: color 0.2s, opacity 0.2s, transform 0.15s var(--ease);
+}
+
+.sl-hscroll__arrow svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.sl-hscroll__arrow:hover:not(:disabled) {
+  color: var(--brand);
+}
+
+.sl-hscroll__arrow:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.sl-hscroll__arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.sl-hscroll__rail {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.sl-hscroll__thumb {
+  position: absolute;
+  top: -2px;
+  height: 8px;
+  min-width: 24px;
+  border-radius: 999px;
+  background: var(--brand);
+  opacity: 0.75;
+  touch-action: none;
+}
+
+.sl-hscroll__thumb:hover {
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

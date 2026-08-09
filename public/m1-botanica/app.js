@@ -31,6 +31,7 @@ import { APP_GUIDE_STEPS, howToPreview } from '/shared/guide.js';
 import { QUIZ_QUESTIONS, scoreQuiz, quizProgress } from '/shared/quiz.js';
 import { ICON_LEGEND } from '/shared/icons.js';
 import { registerSW, setupInstall } from '/shared/pwa.js';
+import { enhanceHScroll } from '/shared/hscroll.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -730,6 +731,7 @@ function render({ keepScroll = false } = {}) {
   view.innerHTML = (SCREENS[state.tab] || pairsScreen)();
   renderTabbar();
   view.scrollTop = keepScroll ? top : 0;
+  enhanceHScroll(view);
   if (state.tab === 'me') setupInstall($('#installInline'), { onHint: toast });
 }
 
