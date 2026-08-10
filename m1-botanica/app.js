@@ -27,8 +27,8 @@ import {
 } from '../shared/engine.js';
 import { weeklyPlan } from '../shared/schedule.js';
 import { idealRoutine } from '../shared/ideal.js';
-import { activeDetail, activeIcon, applyGuideView, esc, tipBtn, uiIcon } from '../shared/content.js';
-import { APP_GUIDE_STEPS, HYDRATION_PARTS, MOISTURIZER_RULES, howToPreview } from '../shared/guide.js';
+import { activeDetail, activeIcon, applyGuideView, esc, tipBtn, uiIcon, medicalDisclaimer } from '../shared/content.js';
+import { APP_GUIDE_STEPS, HYDRATION_PARTS, MOISTURIZER_RULES, howToPreview, MEDICAL_DISCLAIMER } from '../shared/guide.js';
 import { QUIZ_QUESTIONS, scoreQuiz, quizProgress } from '../shared/quiz.js';
 import { ICON_LEGEND } from '../shared/icons.js';
 import { registerSW, setupInstall } from '../shared/pwa.js';
@@ -211,6 +211,8 @@ function pickerView() {
             : '<p class="empty-note">Ничего не нашлось. Попробуйте другое название.</p>'
         }
       </div>
+
+      ${medicalDisclaimer()}
     </div>`;
 }
 
@@ -286,6 +288,8 @@ function focusView(a) {
           ? `<p class="empty-note">Для этого актива пока не описаны сочетания. Это не значит, что их нет — просто мы не добавляем пары без источника.</p>`
           : ''
       }
+
+      ${medicalDisclaimer()}
     </div>`;
 }
 
@@ -322,7 +326,7 @@ function bucketBlock(bucket, items) {
 function idealScreen() {
   const p = state.profile;
   const ideal = idealRoutine(p);
-  const plan = weeklyPlan(ideal.ids, { experience: ideal.experience });
+  const plan = weeklyPlan(ideal.ids, { experience: ideal.experience, pregnant: ideal.pregnant });
   const adopted = ideal.ids.every((id) => p.shelf.includes(id));
 
   return `
@@ -377,7 +381,7 @@ function idealScreen() {
       }
 
       <button class="btn-second" data-open-hydration>Почему увлажняющий крем обязателен</button>
-      <p class="sl-disclaimer">Подбор построен на общих правилах и не учитывает диагнозы. При розацеа, дерматите и во время беременности схему согласуют с дерматологом.</p>
+      ${medicalDisclaimer({ long: true })}
     </div>`;
 }
 
@@ -477,11 +481,15 @@ function planScreen() {
         </div>
         <button class="btn-primary" data-goto="ideal">Собрать идеальный уход по моим настройкам</button>
         <button class="btn-second" data-goto="pairs">Открыть справочник сочетаний</button>
+        ${medicalDisclaimer()}
       </div>`;
   }
 
   const combo = checkCombo(state.profile.shelf);
-  const plan = weeklyPlan(state.profile.shelf, { experience: state.profile.experience });
+  const plan = weeklyPlan(state.profile.shelf, {
+    experience: state.profile.experience,
+    pregnant: state.profile.pregnant,
+  });
   const problems = combo.pairs.filter((p) => p.level === 'avoid' || p.level === 'caution');
   const personal = shelf.flatMap((a) =>
     personalNotes(a, { skipMoisturizer: true }).map((n) => ({ ...n, text: `${a.name}: ${n.text}` }))
@@ -571,6 +579,7 @@ function planScreen() {
       <button class="btn-second" data-goto="catalog">Добавить ещё актив</button>
       <button class="btn-second" data-open-apply>Как правильно наносить активы</button>
       <button class="btn-second" data-open-hydration>Увлажнение: чем и зачем</button>
+      ${medicalDisclaimer()}
     </div>`;
 }
 
@@ -644,6 +653,7 @@ function catalogScreen() {
       </div>
 
       <button class="btn-second" data-open-apply>Общая инструкция по нанесению</button>
+      ${medicalDisclaimer()}
     </div>`;
 }
 
@@ -735,17 +745,14 @@ function meScreen() {
           ассоциаций и регуляторным документам. Пары ингредиентов не добавляются «по логике»:
           если у сочетания нет подтверждения, оно не появится в приложении.
         </p>
-        <p>
-          Приложение не ставит диагнозы и не заменяет врача. При розацеа, обострении дерматита,
-          беременности и приёме системных препаратов схему ухода согласуют с дерматологом.
-        </p>
+        <p>${esc(MEDICAL_DISCLAIMER.long)}</p>
         <p class="hint">Данные профиля хранятся только в браузере на этом устройстве (localStorage).</p>
       </section>
 
       <button class="btn-second" id="installInline" hidden>Установить приложение</button>
       <button class="btn-second danger" data-reset>Сбросить настройки и набор</button>
 
-      <p class="sl-disclaimer">Информация носит справочный характер и не заменяет консультацию дерматолога.</p>
+      ${medicalDisclaimer()}
     </div>`;
 }
 
@@ -808,6 +815,7 @@ function onboardMarkup() {
         }
         <button type="button" class="btn-primary" data-onboard-next>${last ? 'Начать' : 'Дальше'}</button>
       </div>
+      ${last ? medicalDisclaimer() : ''}
     </div>`;
 }
 
@@ -824,6 +832,7 @@ function helpMarkup() {
           </li>`
         ).join('')}
       </ol>
+      ${medicalDisclaimer()}
       <button type="button" class="btn-primary" data-overlay-close>Понятно</button>
       <button type="button" class="btn-second" data-open-apply>Как наносить активы</button>
     </div>`;
@@ -835,6 +844,7 @@ function applyMarkup() {
       <h2 id="overlayTitle">Как наносить активы</h2>
       <p class="help__lead">Общий порядок слоёв. У каждого актива в карточке — своя пошаговая инструкция.</p>
       ${applyGuideView()}
+      ${medicalDisclaimer()}
       <button type="button" class="btn-primary" data-overlay-close>Понятно</button>
     </div>`;
 }
@@ -864,6 +874,8 @@ function hydrationMarkup() {
         ).join('')}
       </div>
 
+      ${medicalDisclaimer()}
+
       <button type="button" class="btn-primary" data-shelf-toggle="moisturizer">
         ${onShelf('moisturizer') ? '✓ Крем уже в вашем уходе' : '+ Добавить крем в мой уход'}
       </button>
@@ -886,10 +898,12 @@ function quizMarkup() {
             ? ''
             : '<p class="hint">Результат на границе двух типов — можно скорректировать вручную в профиле.</p>'
         }
+        <p class="hint">Тест — ориентир, а не диагноз. При стойких проблемах кожи обратитесь к дерматологу.</p>
         <div class="onboard__actions">
           <button type="button" class="btn-second" data-quiz-restart>Пройти снова</button>
           <button type="button" class="btn-primary" data-quiz-apply="${r.skin}">Сохранить тип кожи</button>
         </div>
+        ${medicalDisclaimer()}
       </div>`;
   }
 

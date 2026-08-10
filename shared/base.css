@@ -1,5 +1,4 @@
-/* Общая база для всех макетов: сброс + компоненты контента (.sl-*).
-   Внешний вид задаётся переменными, которые переопределяет тема. */
+/* Базовый сброс и общие компоненты контента SkinLab (.sl-*). */
 
 :root {
   /* Базовая палитра: песок, олива, тёмно-коричневый, холодный серо-голубой. */
@@ -32,8 +31,8 @@
   --radius: 22px;
   --radius-sm: 14px;
   --shadow: 0 18px 40px -24px rgba(72, 63, 41, 0.45);
-  --font-head: 'Inter', system-ui, sans-serif;
-  --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-head: system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -123,113 +122,6 @@ canvas {
   background-clip: content-box;
 }
 
-.sl-visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-/* ---------- Карточка актива ---------- */
-
-.sl-card {
-  position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 14px;
-  padding: 16px;
-  border-radius: var(--radius);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  cursor: pointer;
-  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), border-color 0.25s;
-}
-
-.sl-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow);
-  border-color: color-mix(in srgb, var(--brand) 45%, transparent);
-}
-
-.sl-card.is-selected {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand) 35%, transparent);
-}
-
-.sl-card__emoji {
-  font-size: 26px;
-  width: 46px;
-  height: 46px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--surface-2);
-}
-
-.sl-card__title {
-  font-size: 17px;
-  font-weight: 600;
-}
-
-.sl-card__inci {
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-}
-
-.sl-card__tagline {
-  font-size: 13px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
-.sl-card__meta {
-  grid-column: 1 / -1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-/* ---------- Продукт ---------- */
-
-.sl-product {
-  padding: 16px;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  cursor: pointer;
-  transition: border-color 0.2s, transform 0.3s var(--ease);
-}
-
-.sl-product:hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--brand) 50%, transparent);
-}
-
-.sl-product__head {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.sl-product__name {
-  font-size: 16px;
-  margin: 6px 0 10px;
-  font-weight: 600;
-}
-
-.sl-product__actives {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.sl-tag,
 .sl-pill {
   display: inline-flex;
   align-items: center;
@@ -272,20 +164,10 @@ canvas {
 
 .sl-detail__head {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr;
   align-items: start;
   gap: 16px;
   margin-bottom: 18px;
-}
-
-.sl-detail__emoji {
-  font-size: 34px;
-  width: 62px;
-  height: 62px;
-  display: grid;
-  place-items: center;
-  border-radius: 20px;
-  background: var(--surface-2);
 }
 
 .sl-detail__group {
@@ -311,39 +193,6 @@ canvas {
   color: var(--text);
   opacity: 0.86;
   max-width: 62ch;
-}
-
-.sl-shelf-btn {
-  padding: 9px 16px;
-  border-radius: 99px;
-  border: 1px solid var(--line);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-}
-
-.sl-shelf-btn:hover {
-  border-color: var(--brand);
-  color: var(--brand-deep, var(--brand));
-}
-
-.sl-shelf-btn .sl-shelf-btn__on {
-  display: none;
-}
-
-.sl-shelf-btn[aria-pressed='true'] {
-  background: var(--brand);
-  color: var(--brand-ink);
-  border-color: transparent;
-}
-
-.sl-shelf-btn[aria-pressed='true'] .sl-shelf-btn__on {
-  display: inline;
-}
-
-.sl-shelf-btn[aria-pressed='true'] .sl-shelf-btn__off {
-  display: none;
 }
 
 .sl-stats {
@@ -673,262 +522,6 @@ canvas {
   border-bottom-color: var(--brand);
 }
 
-/* ---------- Совместимость ---------- */
-
-.sl-verdict {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  padding: 18px 20px;
-  border-radius: var(--radius);
-  margin-bottom: 16px;
-  border: 1px solid var(--line);
-  background: var(--surface-2);
-}
-
-.sl-verdict h3 {
-  font-size: 19px;
-}
-
-.sl-verdict p {
-  font-size: 14px;
-  color: var(--muted);
-  margin-top: 4px;
-}
-
-.sl-verdict__icon {
-  width: 40px;
-  height: 40px;
-  flex: none;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  font-size: 19px;
-  color: var(--on-tone, var(--sand));
-}
-
-.sl-verdict--good {
-  background: var(--good-bg);
-  border-color: color-mix(in srgb, var(--good) 35%, transparent);
-}
-.sl-verdict--good .sl-verdict__icon {
-  background: var(--good);
-}
-.sl-verdict--ok .sl-verdict__icon {
-  background: var(--ok);
-}
-.sl-verdict--warn {
-  background: var(--warn-bg);
-  border-color: color-mix(in srgb, var(--warn) 35%, transparent);
-}
-.sl-verdict--warn .sl-verdict__icon {
-  background: var(--warn);
-}
-.sl-verdict--bad {
-  background: var(--bad-bg);
-  border-color: color-mix(in srgb, var(--bad) 35%, transparent);
-}
-.sl-verdict--bad .sl-verdict__icon {
-  background: var(--bad);
-}
-
-.sl-pairs {
-  display: grid;
-  gap: 10px;
-}
-
-.sl-pair {
-  padding: 13px 16px;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-left-width: 3px;
-}
-
-.sl-pair__head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  font-weight: 600;
-  font-size: 14.5px;
-}
-
-.sl-pair__plus {
-  color: var(--muted);
-}
-
-.sl-pair__badge {
-  margin-left: auto;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 4px 9px;
-  border-radius: 99px;
-}
-
-.sl-pair__why {
-  font-size: 13.5px;
-  color: var(--muted);
-  margin-top: 6px;
-}
-
-.sl-pair--good {
-  border-left-color: var(--good);
-}
-.sl-pair--good .sl-pair__badge {
-  background: var(--good-bg);
-  color: var(--good);
-}
-.sl-pair--ok {
-  border-left-color: var(--ok);
-}
-.sl-pair--ok .sl-pair__badge {
-  background: var(--ok-bg);
-  color: var(--ok);
-}
-.sl-pair--warn {
-  border-left-color: var(--warn);
-}
-.sl-pair--warn .sl-pair__badge {
-  background: var(--warn-bg);
-  color: var(--warn);
-}
-.sl-pair--bad {
-  border-left-color: var(--bad);
-}
-.sl-pair--bad .sl-pair__badge {
-  background: var(--bad-bg);
-  color: var(--bad);
-}
-
-/* ---------- Рутина ---------- */
-
-.sl-routines {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 14px;
-}
-
-.sl-routine {
-  padding: 16px;
-  border-radius: var(--radius);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-}
-
-.sl-routine__title {
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-.sl-routine__list {
-  display: grid;
-  gap: 8px;
-  counter-reset: rt;
-}
-
-.sl-routine__list li {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 12px;
-  background: var(--surface);
-  font-size: 14px;
-}
-
-.sl-routine__list li.is-conflict {
-  outline: 1px dashed var(--bad);
-}
-
-.sl-routine__layer {
-  font-size: 11px;
-  color: var(--muted);
-}
-
-.sl-empty {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-/* ---------- Сканер ---------- */
-
-.sl-scan-stage {
-  position: relative;
-  aspect-ratio: 3 / 4;
-  max-height: 62vh;
-  border-radius: var(--radius);
-  overflow: hidden;
-  background: #14131a;
-  display: grid;
-  place-items: center;
-}
-
-.sl-scan-stage video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.sl-scan-frame {
-  position: absolute;
-  inset: 12%;
-  border-radius: 20px;
-  border: 2px solid rgba(255, 255, 255, 0.75);
-  box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.35);
-  pointer-events: none;
-}
-
-.sl-scan-frame::before,
-.sl-scan-frame::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, #fff, transparent);
-  opacity: 0;
-}
-
-.is-scanning .sl-scan-frame::before {
-  opacity: 1;
-  animation: sl-scanline 1.6s var(--ease) infinite;
-}
-
-@keyframes sl-scanline {
-  0% {
-    top: 2%;
-  }
-  100% {
-    top: 98%;
-  }
-}
-
-.sl-scan-hint {
-  position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 8px 14px;
-  border-radius: 99px;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  font-size: 13px;
-  text-align: center;
-  max-width: 88%;
-  backdrop-filter: blur(6px);
-}
-
-.sl-demo-note {
-  font-size: 12.5px;
-  color: var(--muted);
-  text-align: center;
-}
-
 /* --- Иконки активов --- */
 
 .sl-ico {
@@ -1140,9 +733,7 @@ canvas {
   gap: 2px;
 }
 
-.sl-rel__name,
-.sl-pair__head span,
-.sl-routine__list li {
+.sl-rel__name {
   display: inline-flex;
   align-items: center;
   gap: 8px;

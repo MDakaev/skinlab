@@ -18,7 +18,7 @@ const META_COLOR = { light: '#cfe3f2', dark: '#0e1b28' };
 
 const media = () => window.matchMedia('(prefers-color-scheme: dark)');
 
-export function resolveTheme(pref) {
+function resolveTheme(pref) {
   if (pref === 'light' || pref === 'dark') return pref;
   return media().matches ? 'dark' : 'light';
 }

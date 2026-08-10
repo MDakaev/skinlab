@@ -1,4 +1,4 @@
-/* Макет 1 — Botanica: мягкий app-shell в голубой палитре.
+/* Тема SkinLab на основе Botanica: мягкий app-shell в голубой палитре.
    Основа — четыре холодных оттенка: дымка #eef5fb, серо-голубой #9dbdd4,
    лазурь #2f6d9e и глубокий тёмно-синий #16334a. Пятый цвет, тёплая охра
    #9c6435, используется только для предупреждений — иначе «осторожно»
@@ -367,18 +367,6 @@ body {
   color: var(--brand);
 }
 
-.searchbar__cam {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--brand);
-  color: var(--brand-ink);
-  font-size: 16px;
-  flex: none;
-}
-
 .chips {
   display: flex;
   gap: 8px;
@@ -436,92 +424,6 @@ body {
   font-size: 12.5px;
   color: var(--brand-deep);
   font-weight: 600;
-}
-
-.grid {
-  display: grid;
-  gap: 12px;
-}
-
-@media (min-width: 640px) {
-  .grid--2 {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.banner {
-  position: relative;
-  overflow: hidden;
-  padding: 20px;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--navy), var(--azure) 60%, var(--steel));
-  color: var(--mist);
-  display: grid;
-  gap: 10px;
-}
-
-.banner h3 {
-  font-family: var(--font-head);
-  font-size: 20px;
-  font-weight: 600;
-  max-width: 22ch;
-}
-
-.banner p {
-  font-size: 13.5px;
-  opacity: 0.92;
-  max-width: 34ch;
-}
-
-.banner button {
-  justify-self: start;
-  padding: 10px 18px;
-  border-radius: 99px;
-  background: var(--mist);
-  color: var(--navy);
-  font-weight: 700;
-  font-size: 13px;
-}
-
-.banner__glow {
-  position: absolute;
-  width: 180px;
-  height: 180px;
-  right: -50px;
-  top: -70px;
-  border-radius: 50%;
-  background: rgba(var(--mist-rgb), 0.22);
-}
-
-.mini-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.mini {
-  padding: 14px 12px;
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  border: 1px solid var(--line);
-  text-align: left;
-  display: grid;
-  gap: 4px;
-}
-
-.mini span {
-  font-size: 20px;
-}
-
-.mini b {
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.mini i {
-  font-style: normal;
-  font-size: 11px;
-  color: var(--muted);
 }
 
 .empty-note {
@@ -628,11 +530,6 @@ body {
   transform: translateX(2px);
 }
 
-.pick__emoji {
-  font-size: 22px;
-  flex: none;
-}
-
 .pick__body {
   display: grid;
   gap: 2px;
@@ -692,11 +589,6 @@ body {
   display: flex;
   gap: 14px;
   align-items: flex-start;
-}
-
-.focus__emoji {
-  font-size: 34px;
-  line-height: 1;
 }
 
 .focus__group {
@@ -1808,8 +1700,7 @@ body {
    шагов заливаем тёмно-коричневым. */
 
 .sl-list--steps li::before,
-.sl-apply__num,
-.sl-shelf-btn[aria-pressed='true'] {
+.sl-apply__num {
   background: var(--fill-strong);
   color: var(--on-fill);
 }

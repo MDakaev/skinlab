@@ -9,7 +9,7 @@
  */
 import { getActive, getPair } from './engine.js';
 
-export const DAYS = [
+const DAYS = [
   { id: 'mon', label: 'Пн', full: 'Понедельник' },
   { id: 'tue', label: 'Вт', full: 'Вторник' },
   { id: 'wed', label: 'Ср', full: 'Среда' },
@@ -38,7 +38,7 @@ export function timesPerWeek(active, experience = 'start') {
 const CONFLICT_LEVELS = new Set(['avoid', 'caution']);
 
 /** Активы, после которых защита от солнца обязательна. */
-const PHOTOSENSITIZING = new Set(['retinol', 'retinal', 'adapalene', 'aha', 'bha', 'pha']);
+const PHOTOSENSITIZING = new Set(['retinol', 'retinal', 'adapalene', 'aha', 'bha', 'pha', 'bakuchiol']);
 
 /** Чем можно закрыть шаг увлажнения: сам крем или средство, которое его заменяет. */
 const HYDRATING = new Set(['moisturizer', 'ceramides', 'squalane', 'urea']);
@@ -62,9 +62,9 @@ function conflictIn(slotItems, active) {
 
 /**
  * @param {string[]} ids — активы, которые женщина использует
- * @param {{ experience?: 'start'|'adapted' }} options
+ * @param {{ experience?: 'start'|'adapted', pregnant?: boolean }} options
  */
-export function weeklyPlan(ids, { experience = 'start' } = {}) {
+export function weeklyPlan(ids, { experience = 'start', pregnant = false } = {}) {
   const items = [...new Set(ids)].map(getActive).filter(Boolean);
   const freq = FREQUENCY[experience] || FREQUENCY.start;
 
@@ -148,7 +148,7 @@ export function weeklyPlan(ids, { experience = 'start' } = {}) {
     day.pm.sort(byLayer);
   }
 
-  const notes = buildNotes(items, { separatedByTime, rotatedByDay });
+  const notes = buildNotes(items, { separatedByTime, rotatedByDay, pregnant });
 
   return {
     days,
@@ -162,9 +162,28 @@ export function weeklyPlan(ids, { experience = 'start' } = {}) {
   };
 }
 
-function buildNotes(items, { separatedByTime, rotatedByDay }) {
+function buildNotes(items, { separatedByTime, rotatedByDay, pregnant = false }) {
   const notes = [];
   const has = (id) => items.some((a) => a.id === id);
+
+  if (pregnant) {
+    const blocked = items.filter((a) => a.pregnancy === 'no');
+    const caution = items.filter((a) => a.pregnancy === 'caution');
+    if (blocked.length) {
+      notes.push({
+        tone: 'bad',
+        text: `В наборе есть активы, которые не применяют при беременности и лактации (${blocked
+          .map((a) => a.name)
+          .join(', ')}). Уберите их и согласуйте уход с врачом — расписание ниже не отменяет этот запрет.`,
+      });
+    }
+    if (caution.length) {
+      notes.push({
+        tone: 'warn',
+        text: `${caution.map((a) => a.name).join(', ')} — при беременности только после согласования с врачом. SkinLab не назначает лечение.`,
+      });
+    }
+  }
 
   const needsSpf = items.filter((a) => PHOTOSENSITIZING.has(a.id));
   if (needsSpf.length && !has('spf')) {
@@ -212,6 +231,11 @@ function buildNotes(items, { separatedByTime, rotatedByDay }) {
       text: 'Суммарная нагрузка набора высокая. Вводите новые активы по одному раз в 2–4 недели и следите за реакцией кожи.',
     });
   }
+
+  notes.push({
+    tone: 'ok',
+    text: 'Расписание — ориентир по совместимости, а не назначение врача. При раздражении или сомнениях обратитесь к дерматологу.',
+  });
 
   return notes;
 }
