@@ -22,6 +22,7 @@ import {
 import { matchActives, parseIngredients } from './inci.js';
 import { analyzeActives } from './analyze.js';
 import { fetchProduct } from './obf.js';
+import { MEDICAL_DISCLAIMER } from '../../public/shared/guide.js';
 
 const asInt = (v, def) => {
   const n = Number.parseInt(v, 10);
@@ -58,6 +59,7 @@ export async function registerRoutes(app) {
     skinTypes: SKIN_TYPES,
     concerns: CONCERNS,
     levels: LEVELS,
+    disclaimer: MEDICAL_DISCLAIMER.long,
   }));
 
   app.get('/api/actives', async () => ({ items: allActivesPublic() }));

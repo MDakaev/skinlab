@@ -14,7 +14,13 @@ const LEVEL_WEIGHT = { great: 0, ok: 1, caution: 2, avoid: 3 };
 export function getPair(idA, idB) {
   if (idA === idB) return null;
   const found = ruleMap.get(ruleKey(idA, idB));
-  return found || { level: 'ok', assumed: true, why: 'В нашей базе нет выверенного правила для этой пары — это не значит «безопасно». Вводите новый актив по одному, следите за реакцией и при сомнениях разносите по времени.' };
+  return (
+    found || {
+      level: 'ok',
+      assumed: true,
+      why: 'В нашей базе нет выверенного правила для этой пары — это не подтверждённая безопасность. Вводите новое по одному и при сомнениях разносите по времени.',
+    }
+  );
 }
 
 /** Все известные связи актива, разложенные по уровням. */
@@ -44,12 +50,26 @@ export function checkCombo(ids) {
   const worst = pairs.reduce((acc, p) => (LEVEL_WEIGHT[p.level] > LEVEL_WEIGHT[acc] ? p.level : acc), 'great');
   const irritation = list.reduce((sum, id) => sum + byId.get(id).irritation, 0);
 
+  const hasAssumed = pairs.some((p) => p.assumed);
+
   let verdict;
-  if (list.length < 2) verdict = { level: 'ok', title: 'Добавьте минимум два актива', text: 'Выберите хотя бы две позиции, чтобы проверить их сочетание.' };
-  else if (worst === 'avoid') verdict = { level: 'avoid', title: 'Не наносите вместе', text: 'В наборе есть конфликтующая пара. Разведите её по времени суток или по разным дням.' };
-  else if (worst === 'caution') verdict = { level: 'caution', title: 'Можно, но аккуратно', text: 'Сочетание рабочее для адаптированной кожи. Начинайте с минимальной частоты.' };
-  else if (irritation >= 9) verdict = { level: 'caution', title: 'Суммарная нагрузка высокая', text: 'Конфликтов нет, но общий раздражающий потенциал набора велик. Уменьшите количество активов за один вечер.' };
-  else verdict = { level: 'great', title: 'Отличная комбинация', text: 'Активы работают вместе и усиливают друг друга.' };
+  if (list.length < 2) {
+    verdict = { level: 'ok', title: 'Добавьте минимум два актива', text: 'Выберите хотя бы две позиции, чтобы проверить их сочетание.' };
+  } else if (worst === 'avoid') {
+    verdict = { level: 'avoid', title: 'Не наносите вместе', text: 'В наборе есть конфликтующая пара. Разведите её по времени суток или по разным дням.' };
+  } else if (worst === 'caution') {
+    verdict = { level: 'caution', title: 'Можно, но аккуратно', text: 'Сочетание рабочее для адаптированной кожи. Начинайте с минимальной частоты.' };
+  } else if (irritation >= 9) {
+    verdict = { level: 'caution', title: 'Суммарная нагрузка высокая', text: 'Явных запрещённых пар нет, но общий раздражающий потенциал набора велик. Уменьшите количество активов за один вечер.' };
+  } else if (hasAssumed) {
+    verdict = {
+      level: 'ok',
+      title: 'Явных конфликтов в базе нет',
+      text: 'Часть пар не описана отдельным правилом — это не гарантия совместимости. Вводите новое по одному и следите за реакцией.',
+    };
+  } else {
+    verdict = { level: 'great', title: 'Отличная комбинация', text: 'Активы работают вместе и усиливают друг друга.' };
+  }
 
   return { list: list.map((id) => byId.get(id)), pairs, verdict, irritation };
 }
@@ -104,9 +124,7 @@ export function filterActives({ skin = null, concern = null, group = null } = {}
   });
 }
 
-export const groups = () => [...new Set(ACTIVES.map((a) => a.group))];
-
-/** Профиль пользователя в localStorage — общий для всех макетов. */
+/** Профиль пользователя в localStorage. */
 const STORE_KEY = 'skinlab.profile.v1';
 const defaults = {
   skin: null,
@@ -167,9 +185,9 @@ export function resetProfile() {
 }
 
 export const PREGNANCY_LABEL = {
-  yes: { text: 'Разрешён при беременности', tone: 'good' },
-  caution: { text: 'При беременности — по согласованию с врачом', tone: 'warn' },
-  no: { text: 'Запрещён при беременности и лактации', tone: 'bad' },
+  yes: { text: 'Обычно считают допустимым при беременности — всё равно уточните у врача', tone: 'good' },
+  caution: { text: 'При беременности и лактации — только после согласования с врачом', tone: 'warn' },
+  no: { text: 'Не применяют при беременности и лактации', tone: 'bad' },
 };
 
 export const SKIN_VERDICT = {

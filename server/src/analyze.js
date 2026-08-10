@@ -13,6 +13,7 @@ import {
   PREGNANCY_LABEL,
   LEVELS,
 } from './knowledge.js';
+import { MEDICAL_DISCLAIMER } from '../../public/shared/guide.js';
 
 const concernLabel = (id) => CONCERNS.find((c) => c.id === id)?.label || id;
 
@@ -76,6 +77,7 @@ export function analyzeActives(activeIds, profile = {}) {
   const serialize = (arr) => arr.map((a) => ({ id: a.id, name: a.name, emoji: a.emoji }));
 
   return {
+    disclaimer: MEDICAL_DISCLAIMER.long,
     actives,
     summary: {
       count: actives.length,

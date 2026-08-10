@@ -1,7 +1,7 @@
 /* Service worker: оболочка приложения работает офлайн.
    Пути считаются от scope (корень сайта) — так один и тот же SW
    работает и локально на /, и на GitHub Pages в /skinlab/. */
-const VERSION = 'skinlab-v10';
+const VERSION = 'skinlab-v12';
 
 const BASE = self.registration.scope;
 const asset = (path) => new URL(path.replace(/^\//, ''), BASE).href;

@@ -1,7 +1,4 @@
-/**
- * Общие блоки контента для всех макетов.
- * Разметка семантическая и одинаковая, а внешний вид полностью задаёт тема.
- */
+/** Общие блоки контента SkinLab. */
 import {
   SKIN_TYPES,
   LEVELS,
@@ -11,17 +8,23 @@ import {
   TIME_LABEL,
 } from './engine.js';
 import { activeIcon, uiIcon } from './icons.js';
-import { APPLY_LAYERS, APPLY_RULES } from './guide.js';
+import { APPLY_LAYERS, APPLY_RULES, MEDICAL_DISCLAIMER } from './guide.js';
 
 export const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 export { activeIcon, uiIcon };
 
-export const meter = (value, max = 5) =>
+/** Единый дисклеймер для экранов, карточек и оверлеев. */
+export function medicalDisclaimer({ long = false } = {}) {
+  const text = long ? MEDICAL_DISCLAIMER.long : MEDICAL_DISCLAIMER.short;
+  return `<p class="sl-disclaimer">${esc(text)}</p>`;
+}
+
+const meter = (value, max = 5) =>
   `<span class="sl-meter" aria-label="${value} из ${max}">${Array.from({ length: max }, (_, i) => `<i class="sl-meter__dot${i < value ? ' is-on' : ''}"></i>`).join('')}</span>`;
 
-export function pill(text, tone = '') {
+function pill(text, tone = '') {
   return `<span class="sl-pill${tone ? ` sl-pill--${tone}` : ''}">${esc(text)}</span>`;
 }
 
@@ -31,23 +34,6 @@ export function tipBtn(text, { label = 'Что это?' } = {}) {
     <span class="sl-tipbtn__mark" aria-hidden="true">?</span>
     <span class="sl-tipbtn__pop" role="tooltip">${esc(text)}</span>
   </button>`;
-}
-
-/** Компактная карточка актива для списков и сеток. */
-export function activeCard(a, { selected = false } = {}) {
-  return `
-    <article class="sl-card${selected ? ' is-selected' : ''}" data-active="${a.id}" tabindex="0" role="button" aria-label="${esc(a.name)}">
-      ${activeIcon(a, 'md')}
-      <div class="sl-card__body">
-        <h3 class="sl-card__title">${esc(a.name)}</h3>
-        <p class="sl-card__inci">${esc(a.inci)}</p>
-        <p class="sl-card__tagline">${esc(a.tagline)}</p>
-      </div>
-      <div class="sl-card__meta">
-        ${pill(TIME_LABEL[a.time], a.time === 'PM' ? 'night' : a.time === 'AM' ? 'day' : '')}
-        ${pill(a.group)}
-      </div>
-    </article>`;
 }
 
 /** Общая инструкция: порядок слоёв + правила нанесения. */
@@ -74,18 +60,6 @@ export function applyGuideView() {
         ).join('')}
       </div>
     </div>`;
-}
-
-export function productCard(p, activeNames) {
-  return `
-    <article class="sl-product" data-product="${p.id}">
-      <div class="sl-product__head">
-        <span class="sl-product__brand">${esc(p.brand)}</span>
-        <span class="sl-product__type">${esc(p.type)}</span>
-      </div>
-      <h3 class="sl-product__name">${esc(p.name)}</h3>
-      <div class="sl-product__actives">${activeNames.map((n) => `<span class="sl-tag">${esc(n)}</span>`).join('')}</div>
-    </article>`;
 }
 
 const section = (title, inner, mod = '') =>
@@ -122,7 +96,7 @@ export function activeDetail(a) {
         <ul class="sl-rel__list">
           ${items
             .map(
-              (r) => `<li><button class="sl-rel__item" data-active="${r.active.id}">
+              (r) => `<li><button class="sl-rel__item" data-focus="${r.active.id}">
                   <span class="sl-rel__name">${activeIcon(r.active, 'sm')} ${esc(r.active.name)}</span>
                   <span class="sl-rel__why">${esc(r.why)}</span>
                 </button></li>`
@@ -149,10 +123,6 @@ export function activeDetail(a) {
         <h2 class="sl-detail__title">${esc(a.name)}${a.drug ? ' <span class="sl-badge sl-badge--drug">Лекарство</span>' : ''}</h2>
         <p class="sl-detail__inci">${esc(a.inci)}</p>
       </div>
-      <button class="sl-shelf-btn" data-shelf="${a.id}" aria-pressed="false">
-        <span class="sl-shelf-btn__on">✓ На полке</span>
-        <span class="sl-shelf-btn__off">+ На полку</span>
-      </button>
     </header>
 
     <p class="sl-detail__lead">${esc(a.what)}</p>
@@ -188,7 +158,7 @@ export function activeDetail(a) {
 
     <aside class="sl-tip"><span class="sl-tip__mark">Совет</span><p>${esc(a.tip)}</p></aside>
     ${sourcesBlock(a.sources)}
-    <p class="sl-disclaimer">Информация носит справочный характер и не заменяет консультацию дерматолога.</p>
+    ${medicalDisclaimer({ long: true })}
   `;
 }
 
@@ -203,56 +173,4 @@ const CONCERN_LABELS = {
   dullness: 'Тусклость',
   barrier: 'Барьер',
 };
-export const concernLabel = (id) => CONCERN_LABELS[id] || id;
-
-/** Результат проверки совместимости набора активов. */
-export function comboResult(result) {
-  const { verdict, pairs, list } = result;
-  if (list.length < 2) {
-    return `<div class="sl-verdict sl-verdict--ok"><h3>${esc(verdict.title)}</h3><p>${esc(verdict.text)}</p></div>`;
-  }
-  const V = LEVELS[verdict.level];
-  return `
-    <div class="sl-verdict sl-verdict--${V.tone}">
-      <span class="sl-verdict__icon">${V.icon}</span>
-      <div><h3>${esc(verdict.title)}</h3><p>${esc(verdict.text)}</p></div>
-    </div>
-    <div class="sl-pairs">
-      ${pairs
-        .map((p) => {
-          const L = LEVELS[p.level];
-          return `<div class="sl-pair sl-pair--${L.tone}">
-              <div class="sl-pair__head">
-                <span>${activeIcon(p.a, 'sm')} ${esc(p.a.name)}</span>
-                <span class="sl-pair__plus">+</span>
-                <span>${activeIcon(p.b, 'sm')} ${esc(p.b.name)}</span>
-                <span class="sl-pair__badge">${esc(L.short)}</span>
-              </div>
-              <p class="sl-pair__why">${esc(p.why)}</p>
-            </div>`;
-        })
-        .join('')}
-    </div>`;
-}
-
-/** Порядок нанесения утром и вечером. */
-export function routineView(r) {
-  const col = (title, items, icon) => `
-    <div class="sl-routine">
-      <h4 class="sl-routine__title">${icon} ${esc(title)}</h4>
-      ${
-        items.length
-          ? `<ol class="sl-routine__list">${items
-              .map(
-                (a) => `<li class="${r.conflicting.has(a.id) ? 'is-conflict' : ''}">
-                  ${activeIcon(a, 'sm')}
-                  <span class="sl-routine__name">${esc(a.name)}</span>
-                  <span class="sl-routine__layer">слой ${a.layer}</span>
-                </li>`
-              )
-              .join('')}</ol>`
-          : '<p class="sl-empty">Пока пусто</p>'
-      }
-    </div>`;
-  return `<div class="sl-routines">${col('Утро', r.am, uiIcon('sun', 'sm'))}${col('Вечер', r.pm, uiIcon('moon', 'sm'))}</div>`;
-}
+const concernLabel = (id) => CONCERN_LABELS[id] || id;

@@ -16,10 +16,6 @@ const UA =
 const FAMILIES = [
   'Lora:wght@400;500;600;700',
   'Manrope:wght@400;500;600;700;800',
-  'Playfair+Display:wght@400;500;600;700;800',
-  'Inter:wght@300;400;500;600;700',
-  'Unbounded:wght@300;400;500;700',
-  'Nunito:wght@400;600;700;800;900',
 ];
 
 const KEEP = ['cyrillic', 'cyrillic-ext', 'latin', 'latin-ext'];
@@ -49,7 +45,7 @@ for (const family of FAMILIES) {
     await writeFile(path.join(OUT_DIR, fileName), buf);
     downloaded++;
 
-    cssParts.push(face.replace(remote, `/assets/fonts/${fileName}`).trim());
+    cssParts.push(face.replace(remote, fileName).trim());
   }
   console.log('готово:', decodeURIComponent(family.split(':')[0]).replace(/\+/g, ' '));
 }

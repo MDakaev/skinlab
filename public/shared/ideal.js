@@ -8,7 +8,8 @@
  * Правила отбора:
  *  1. Базовый уход не обсуждается: очищение → крем → SPF есть всегда.
  *  2. Активы, противопоказанные типу кожи ('avoid'), не предлагаются никогда.
- *  3. При беременности активы с pregnancy:'no' исключаются, 'caution' — с пометкой.
+ *  3. При беременности активы с pregnancy:'no' и 'caution' не предлагаются автоматически.
+ *     В набор попадают только те, что обычно считают допустимыми (pregnancy:'yes'), и то с оговоркой врача.
  *  4. Лекарственные препараты не назначаются автоматически, только упоминаются.
  *  5. Число активов ограничено: перегруженная рутина хуже короткой.
  *  6. Пара с вердиктом 'avoid' в один набор не попадает.
@@ -120,6 +121,15 @@ export function idealRoutine(profile = {}) {
       continue;
     }
 
+    if (pregnant && a.pregnancy === 'caution') {
+      excluded.push({
+        active: a,
+        tone: 'warn',
+        why: 'Данных по беременности недостаточно или есть оговорки по площади/концентрации. Автоматически не предлагаем — только после согласования с врачом.',
+      });
+      continue;
+    }
+
     const group = EXCLUSIVE_GROUPS[a.id];
     if (group && usedGroups.has(group)) {
       excluded.push({ active: a, tone: 'ok', why: 'В рутине уже есть актив той же группы — двух сразу не нужно.' });
@@ -141,7 +151,7 @@ export function idealRoutine(profile = {}) {
       active: a,
       matched: item.matched,
       why: reasonFor(a, item.matched),
-      pregnancyWarning: pregnant && a.pregnancy === 'caution',
+      pregnancyWarning: false,
       skinWarning: skin ? a.skin[skin] === 'caution' : false,
     });
     if (group) usedGroups.add(group);
@@ -315,15 +325,7 @@ function buildNotes({ skin, pregnant, experience, picks, concerns, usingDefaults
   if (pregnant) {
     notes.push({
       tone: 'warn',
-      text: 'Учтена беременность: ретиноиды исключены полностью. Азелаиновая кислота и ниацинамид — обычная замена в этот период, но схему стоит согласовать с врачом.',
-    });
-  }
-
-  const risky = picks.filter((p) => p.pregnancyWarning);
-  if (risky.length) {
-    notes.push({
-      tone: 'warn',
-      text: `${risky.map((p) => p.active.name).join(', ')} — данных по беременности недостаточно. Оставили в наборе, но обсудите с врачом.`,
+      text: 'Учтена беременность: ретиноиды, бакучиол и активы с неясным профилем безопасности исключены. Обычно оставляют ниацинамид, азелаиновую кислоту, мягкое увлажнение и SPF — схему всё равно согласуйте с врачом.',
     });
   }
 
