@@ -34,6 +34,7 @@ import { ICON_LEGEND } from '../shared/icons.js';
 import { registerSW, setupInstall } from '../shared/pwa.js';
 import { enhanceHScroll } from '../shared/hscroll.js';
 import { THEME_OPTIONS, applyTheme, nextTheme, watchSystemTheme } from '../shared/theme.js';
+import { createDrawer } from '../shared/fluid.js';
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -45,6 +46,21 @@ const sheetBody = $('#sheetBody');
 const overlay = $('#overlay');
 const overlayBody = $('#overlayBody');
 const toastEl = $('#toast');
+
+const sheetDrawer = createDrawer(sheet, {
+  onClose: () => {
+    if (overlay.hidden) document.body.style.overflow = '';
+  },
+});
+const overlayDrawer = createDrawer(overlay, {
+  onClose: () => {
+    if (state.overlay === 'onboard') {
+      state.profile = saveProfile({ onboarded: true });
+    }
+    state.overlay = null;
+    if (sheet.hidden) document.body.style.overflow = '';
+  },
+});
 
 const params = new URLSearchParams(location.search);
 
@@ -176,10 +192,11 @@ function pickerView() {
   const found = state.query ? search(state.query).actives : ACTIVES;
 
   return `
-    <div class="screen">
+    <div class="screen screen--home">
       <div class="hello">
+        <p class="hello__brand">SkinLab</p>
         <h1>Что с чем сочетать</h1>
-        <p>Выберите активный ингредиент — покажем, с чем его можно смешивать, а что развести по разным дням.</p>
+        <p>Выберите актив — покажем безопасные пары и то, что лучше развести по дням.</p>
       </div>
 
       ${tipBanner('pairs-start', 'Нажмите на актив — откроются «хорошие» и «плохие» пары. Кнопка «?» сверху — инструкция по приложению.')}
@@ -189,8 +206,8 @@ function pickerView() {
       ${
         state.query
           ? ''
-          : `<div>
-              <div class="section-title"><h2>Спрашивают чаще всего</h2></div>
+          : `<div class="popular">
+              <div class="section-title"><h2>Часто спрашивают</h2></div>
               <div class="chips">
                 ${POPULAR.map((id) => getActive(id))
                   .filter(Boolean)
@@ -768,18 +785,17 @@ function openOverlay(kind) {
   renderOverlay();
 }
 
-function closeOverlay({ persistOnboard = false } = {}) {
-  if (persistOnboard || state.overlay === 'onboard') {
+function closeOverlay() {
+  if (state.overlay === 'onboard') {
     state.profile = saveProfile({ onboarded: true });
   }
   state.overlay = null;
-  overlay.hidden = true;
-  document.body.style.overflow = sheet.hidden ? '' : 'hidden';
+  overlayDrawer.close();
 }
 
 function renderOverlay() {
   if (!state.overlay) {
-    overlay.hidden = true;
+    overlayDrawer.close();
     return;
   }
   const builders = {
@@ -790,9 +806,9 @@ function renderOverlay() {
     hydration: hydrationMarkup,
   };
   overlayBody.innerHTML = (builders[state.overlay] || helpMarkup)();
-  overlay.hidden = false;
   document.body.style.overflow = 'hidden';
   $('.overlay__panel', overlay).scrollTop = 0;
+  overlayDrawer.open();
 }
 
 function onboardMarkup() {
@@ -997,14 +1013,13 @@ function openDetail(id) {
     <button class="btn-primary sheet-cta" data-shelf-toggle="${a.id}">
       ${onShelf(a.id) ? '✓ Убрать из моего ухода' : '+ Добавить в мой уход'}
     </button>`;
-  sheet.hidden = false;
   document.body.style.overflow = 'hidden';
   $('.sheet__panel', sheet).scrollTop = 0;
+  sheetDrawer.open();
 }
 
 function closeSheet() {
-  sheet.hidden = true;
-  if (overlay.hidden) document.body.style.overflow = '';
+  sheetDrawer.close();
 }
 
 /* ---------------- События ---------------- */
@@ -1031,13 +1046,13 @@ document.addEventListener('click', (e) => {
   if (t.closest('[data-open-quiz]')) return openOverlay('quiz');
 
   if (t.closest('[data-overlay-close]')) {
-    closeOverlay({ persistOnboard: state.overlay === 'onboard' });
+    closeOverlay();
     return;
   }
 
   if (t.closest('[data-onboard-next]')) {
     if (state.onboardStep >= APP_GUIDE_STEPS.length - 1) {
-      closeOverlay({ persistOnboard: true });
+      closeOverlay();
       toast('Готово — можно выбирать актив');
       return render();
     }
@@ -1212,7 +1227,7 @@ document.addEventListener('input', (e) => {
 
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  if (!overlay.hidden) return closeOverlay({ persistOnboard: state.overlay === 'onboard' });
+  if (!overlay.hidden) return closeOverlay();
   if (!sheet.hidden) closeSheet();
 });
 

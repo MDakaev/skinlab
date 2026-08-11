@@ -8,7 +8,7 @@
       name="description"
       content="Справочник сочетаний уход-активов: что можно вместе, что лучше развести по дням. Не заменяет консультацию дерматолога."
     />
-    <meta name="theme-color" content="#cfe3f2" />
+    <meta name="theme-color" content="#f3eee4" />
     <script>
       /* Тема применяется до первой отрисовки, иначе на тёмной теме мигает светлый фон. */
       (() => {
@@ -64,6 +64,7 @@
     <div class="sheet" id="sheet" hidden>
       <div class="sheet__scrim" data-close></div>
       <section class="sheet__panel" role="dialog" aria-modal="true" aria-label="Карточка актива">
+        <div class="sheet__handle" data-drawer-handle aria-hidden="true"></div>
         <button class="sheet__close" data-close aria-label="Закрыть"><svg class="sl-uico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.8 6.8 10.4 10.4M17.2 6.8 6.8 17.2"/></svg></button>
         <div class="sheet__body" id="sheetBody"></div>
       </section>
@@ -72,6 +73,7 @@
     <div class="overlay" id="overlay" hidden>
       <div class="overlay__scrim" data-overlay-close></div>
       <section class="overlay__panel" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
+        <div class="overlay__handle" data-drawer-handle aria-hidden="true"></div>
         <button class="overlay__close" data-overlay-close aria-label="Закрыть"><svg class="sl-uico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.8 6.8 10.4 10.4M17.2 6.8 6.8 17.2"/></svg></button>
         <div class="overlay__body" id="overlayBody"></div>
       </section>
