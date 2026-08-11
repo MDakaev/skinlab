@@ -14,7 +14,7 @@ export const THEME_OPTIONS = [
 ];
 
 /** Цвет системной строки браузера под каждую тему. */
-const META_COLOR = { light: '#cfe3f2', dark: '#0e1b28' };
+const META_COLOR = { light: '#f3eee4', dark: '#0e1b28' };
 
 const media = () => window.matchMedia('(prefers-color-scheme: dark)');
 

@@ -252,10 +252,20 @@ function dedupeExcluded(excluded, picks) {
 
 /**
  * Сборка шагов: базовые пункты плюс подобранные активы в порядке слоёв.
+ *
+ * Активы с time:'ANY' не клонируем в оба столбца бездумно:
+ * сильные (irritation ≥ 3) — только вечером, как в недельном плане;
+ * мягкая поддержка может стоять и утром, и вечером.
  * @param {'AM'|'PM'} time
  */
 function buildSteps(time, picks, { skin, experience }) {
-  const fits = (a) => a.time === time || a.time === 'ANY';
+  const fits = (a) => {
+    if (a.time === time) return true;
+    if (a.time !== 'ANY') return false;
+    // Сильный anytime-актив (BHA, BP…) — вечерний слот, иначе «утро+вечер» пугает и перегружает.
+    if (a.irritation >= 3) return time === 'PM';
+    return true;
+  };
   const actives = picks
     .map((p) => ({ ...p, active: p.active }))
     .filter((p) => fits(p.active))
@@ -267,6 +277,7 @@ function buildSteps(time, picks, { skin, experience }) {
       icon: 'cleanse',
       title: 'Очищение',
       text: CLEANSER_BY_SKIN[skin] || CLEANSER_BY_SKIN.normal,
+      required: true,
     },
     ...actives.map((p) => ({
       id: p.active.id,
@@ -333,6 +344,14 @@ function buildNotes({ skin, pregnant, experience, picks, concerns, usingDefaults
     notes.push({
       tone: 'ok',
       text: 'Режим для непривыкшей кожи: вводите активы по одному раз в 2 недели, начиная с самого мягкого, и следите за реакцией.',
+    });
+  }
+
+  if (experience === 'adapted' && picks.length) {
+    const names = picks.map((p) => p.active.name).join(', ');
+    notes.push({
+      tone: 'ok',
+      text: `Длинный список — это не «11 сывороток подряд». Обязательные база (очищение, крем, SPF) + ${picks.length} актив${picks.length === 1 ? '' : picks.length < 5 ? 'а' : 'ов'} (${names}). Сильные средства не каждый день и обычно только вечером.`,
     });
   }
 
