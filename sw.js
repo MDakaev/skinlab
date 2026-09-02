@@ -1,7 +1,8 @@
 /* Service worker: оболочка приложения работает офлайн.
    Пути считаются от scope (корень сайта) — так один и тот же SW
-   работает и локально на /, и на GitHub Pages в /skinlab/. */
-const VERSION = 'skinlab-v13';
+   работает и локально на /, и на GitHub Pages в /skinlab/.
+   Не кешируем bot token, initData, license secrets, чужие API. */
+const VERSION = 'skinlab-v15';
 
 const BASE = self.registration.scope;
 const asset = (path) => new URL(path.replace(/^\//, ''), BASE).href;
@@ -13,6 +14,9 @@ const SHELL = [
   'assets/fonts/fonts.css',
   'shared/data.js',
   'shared/engine.js',
+  'shared/storage.js',
+  'shared/telegram.js',
+  'shared/share.js',
   'shared/content.js',
   'shared/schedule.js',
   'shared/pwa.js',
@@ -23,6 +27,9 @@ const SHELL = [
   'shared/fluid.js',
   'shared/ideal.js',
   'shared/theme.js',
+  'shared/license.js',
+  'legal/offer.html',
+  'legal/privacy.html',
   'manifest.webmanifest',
   'assets/icon-192.png',
   'assets/icon-512.png',
@@ -63,8 +70,6 @@ self.addEventListener('fetch', (event) => {
           caches.open(VERSION).then((c) => c.put(request, copy));
           return res;
         })
-        // Запасной вариант — само приложение, а не редирект из корня:
-        // офлайн лишний переход просто не на чем выполнить.
         .catch(() =>
           caches.match(request).then((r) => r || caches.match(asset('m1-botanica/index.html')))
         )
@@ -73,7 +78,6 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Статика: сеть в приоритете, кэш — запасной вариант офлайна.
-  // Так свежие стили и скрипты появляются сразу, без «залипшего» кэша.
   event.respondWith(
     fetch(request)
       .then((res) => {

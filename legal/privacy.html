@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Конфиденциальность — SkinLab</title>
+    <meta name="robots" content="noindex" />
+    <link rel="stylesheet" href="../assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="../shared/base.css" />
+    <style>
+      :root {
+        --ink: #1c2a22;
+        --muted: #5c6b62;
+        --line: rgba(28, 42, 34, 0.12);
+        --bg: #f3eee4;
+        --card: #fffdf8;
+        --accent: #2f5d45;
+      }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background:
+          radial-gradient(ellipse 80% 50% at 10% -10%, rgba(47, 93, 69, 0.12), transparent 55%),
+          radial-gradient(ellipse 60% 40% at 100% 0%, rgba(180, 140, 90, 0.1), transparent 50%),
+          var(--bg);
+        color: var(--ink);
+        font-family: 'Manrope', system-ui, sans-serif;
+        line-height: 1.55;
+      }
+      main {
+        max-width: 40rem;
+        margin: 0 auto;
+        padding: 1.5rem 1.25rem 3rem;
+      }
+      a.back {
+        display: inline-flex;
+        color: var(--accent);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.92rem;
+        margin-bottom: 1.25rem;
+      }
+      h1 {
+        font-family: 'Fraunces', Georgia, serif;
+        font-weight: 560;
+        font-size: clamp(1.6rem, 4vw, 2rem);
+        line-height: 1.2;
+        margin: 0 0 0.5rem;
+      }
+      .lead {
+        color: var(--muted);
+        margin: 0 0 1.5rem;
+      }
+      section {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 1rem;
+        padding: 1.1rem 1.15rem;
+        margin-bottom: 0.85rem;
+      }
+      h2 {
+        font-size: 1.05rem;
+        margin: 0 0 0.55rem;
+      }
+      p,
+      li {
+        margin: 0 0 0.55rem;
+        font-size: 0.95rem;
+      }
+      ul {
+        margin: 0;
+        padding-left: 1.15rem;
+      }
+      .meta {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-top: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="../m1-botanica/?tab=me">← В SkinLab</a>
+      <h1>Конфиденциальность</h1>
+      <p class="lead">Коротко: профиль кожи остаётся на устройстве. Платежи обрабатывает платёжный провайдер.</p>
+
+      <section>
+        <h2>Что хранится у вас</h2>
+        <p>
+          Тип кожи, задачи, отметки о беременности/опыте, набор активов и факт активации лицензии
+          сохраняются в браузере (<code>localStorage</code>) на этом устройстве. Учётная запись
+          для пользования справочником не обязательна.
+        </p>
+      </section>
+
+      <section>
+        <h2>Платежи</h2>
+        <p>
+          При покупке лицензии данные карты обрабатывает платёжный провайдер (например, ЮKassa).
+          SkinLab не получает и не хранит полный номер карты.
+        </p>
+        <p>
+          На сервере могут храниться код лицензии, идентификатор платежа, статус и служебные метки
+          для выдачи и проверки кода.
+        </p>
+      </section>
+
+      <section>
+        <h2>Аналитика и cookies</h2>
+        <p>
+          Отдельная маркетинговая аналитика в MVP не подключена. Технические логи сервера могут
+          содержать IP и путь запроса в объёме, нужном для работы API.
+        </p>
+      </section>
+
+      <section>
+        <h2>Контакты</h2>
+        <p>
+          По вопросам лицензии и персональных данных используйте канал, указанный продавцом при оплате
+          (email / поддержка магазина). См. также
+          <a href="./offer.html">оферту</a>.
+        </p>
+      </section>
+
+      <p class="meta">Редакция: 11.08.2026.</p>
+    </main>
+  </body>
+</html>

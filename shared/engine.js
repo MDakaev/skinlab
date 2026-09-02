@@ -1,4 +1,9 @@
 import { ACTIVES, PRODUCTS, RULES, LEVELS, SKIN_TYPES, CONCERNS } from './data.js';
+import {
+  getProfile,
+  saveProfile as persistProfile,
+  clearProfile,
+} from './storage.js';
 
 export { ACTIVES, PRODUCTS, RULES, LEVELS, SKIN_TYPES, CONCERNS };
 
@@ -124,48 +129,13 @@ export function filterActives({ skin = null, concern = null, group = null } = {}
   });
 }
 
-/** Профиль пользователя в localStorage. */
-const STORE_KEY = 'skinlab.profile.v1';
-const defaults = {
-  skin: null,
-  concerns: [],
-  /** Активы, которые женщина уже использует — из них строится план ухода. */
-  shelf: [],
-  pregnant: false,
-  /** 'start' — кожа не адаптирована, 'adapted' — активы уже вводились. */
-  experience: 'start',
-  /** Первый запуск: онбординг пройден. */
-  onboarded: false,
-  /** Тест типа кожи пройден (даже если потом сменили тип вручную). */
-  quizDone: false,
-  /** Ответы квиза { questionId: optionId } — чтобы можно было перепройти. */
-  quizAnswers: {},
-  /** Скрытые подсказки интерфейса (id → true). */
-  dismissedTips: {},
-  /** Оформление: 'auto' следует за системной темой. */
-  theme: 'auto',
-};
-
+/** Профиль: через storage.js (сейчас localStorage; позже — API / Telegram). */
 export function loadProfile() {
-  try {
-    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
-    return {
-      ...defaults,
-      ...raw,
-      concerns: Array.isArray(raw.concerns) ? raw.concerns : [],
-      shelf: Array.isArray(raw.shelf) ? raw.shelf : [],
-      quizAnswers: raw.quizAnswers && typeof raw.quizAnswers === 'object' ? raw.quizAnswers : {},
-      dismissedTips: raw.dismissedTips && typeof raw.dismissedTips === 'object' ? raw.dismissedTips : {},
-    };
-  } catch {
-    return { ...defaults };
-  }
+  return getProfile();
 }
 
 export function saveProfile(patch) {
-  const next = { ...loadProfile(), ...patch };
-  localStorage.setItem(STORE_KEY, JSON.stringify(next));
-  return next;
+  return persistProfile(patch);
 }
 
 export function toggleShelf(id) {
@@ -180,8 +150,7 @@ export function dismissTip(id) {
 }
 
 export function resetProfile() {
-  localStorage.removeItem(STORE_KEY);
-  return { ...defaults };
+  return clearProfile();
 }
 
 export const PREGNANCY_LABEL = {

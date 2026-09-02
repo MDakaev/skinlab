@@ -1,9 +1,13 @@
 /** Регистрация service worker и кнопка «Установить приложение». */
 
+import { isTelegramApp } from './telegram.js';
+
 let deferredPrompt = null;
 
 export function registerSW() {
   if (!('serviceWorker' in navigator)) return;
+  // В Telegram Mini App SW не нужен и может мешать свежим обновлениям WebView.
+  if (isTelegramApp()) return;
   window.addEventListener('load', () => {
     // Относительно shared/pwa.js → корень сайта (и /local, и /skinlab/).
     const swUrl = new URL('../sw.js', import.meta.url);
@@ -20,9 +24,14 @@ const isStandalone = () =>
 /**
  * Показывает кнопку установки, когда браузер к этому готов.
  * В Safari на iOS события нет — показываем инструкцию «Поделиться → На экран Домой».
+ * В Telegram скрываем.
  */
 export function setupInstall(button, { onHint } = {}) {
   if (!button) return;
+  if (isTelegramApp()) {
+    button.hidden = true;
+    return;
+  }
   const iOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
 
   if (isStandalone()) {
