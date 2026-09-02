@@ -30,6 +30,29 @@ python3 -m http.server 4173 --directory public --bind 127.0.0.1
 
 Данные профиля хранятся только в `localStorage`.
 
+## Лицензия (разовая покупка)
+
+Полный **Идеал** и недельный план в **Мой уход** открываются разовой лицензией.
+Справочник сочетаний и активы бесплатны.
+
+- Оферта: [`public/legal/offer.html`](public/legal/offer.html) — явно без гарантии вечного хостинга
+- API: `GET /api/license/offer`, `POST /api/license/checkout`, `POST /api/license/redeem`
+- Dev без ЮKassa: `SKINLAB_DEV_LICENSES=1` (см. `.env.example`)
+- Live: задайте `YOOKASSA_SHOP_ID` и `YOOKASSA_SECRET_KEY`
+
+Локально: поднимите API (`npm start`) рядом с `./start.sh`, иначе кнопка «Купить» не достучится до сервера.
+
+## Telegram Mini App
+
+SkinLab открывается и как обычный Web/PWA, и как Telegram Mini App (тот же Botanica UI).
+
+- План: [`docs/telegram-mini-app-plan.md`](docs/telegram-mini-app-plan.md)
+- BotFather: [`docs/telegram-setup.md`](docs/telegram-setup.md)
+- Разработка: [`docs/telegram-development.md`](docs/telegram-development.md)
+- Монетизация: [`docs/telegram-monetization.md`](docs/telegram-monetization.md)
+
+В `.env`: `TELEGRAM_BOT_TOKEN` (только backend), `TELEGRAM_WEBAPP_URL`.
+
 ## Структура
 
 ```text

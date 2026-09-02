@@ -68,6 +68,50 @@ await check(
   }
 );
 
+process.env.SKINLAB_DEV_LICENSES = '1';
+
+await check('GET /api/license/offer', { method: 'GET', url: '/api/license/offer' }, (b) => {
+  if (!b.price?.amount) throw new Error('нет цены');
+  return `mode=${b.mode}; ${b.price.label}`;
+});
+
+await check('GET /api/telegram/status', { method: 'GET', url: '/api/telegram/status' }, (b) => {
+  if (typeof b.configured !== 'boolean') throw new Error('нет configured');
+  return `configured=${b.configured}; url=${b.webAppUrl || '—'}`;
+});
+
+{
+  const res = await app.inject({
+    method: 'POST',
+    url: '/api/telegram/auth',
+    payload: { userId: 1, initData: '' },
+  });
+  const body = res.json();
+  const ok = res.statusCode === 401 || res.statusCode === 503;
+  console.log(
+    `${ok ? '✓' : '×'} POST /api/telegram/auth (reject empty / no trust userId) [${res.statusCode}] error=${body.error || 'none'}`
+  );
+  if (!ok) failures += 1;
+}
+
+const issued = await check(
+  'POST /api/license/checkout (dev)',
+  { method: 'POST', url: '/api/license/checkout', payload: { returnUrl: 'http://127.0.0.1:4173/' } },
+  (b) => {
+    if (!b.ok || !b.code) throw new Error('нет кода лицензии');
+    return `code=${b.code}`;
+  }
+);
+
+await check(
+  'POST /api/license/redeem',
+  { method: 'POST', url: '/api/license/redeem', payload: { code: issued.code } },
+  (b) => {
+    if (!b.ok) throw new Error(b.error || 'redeem failed');
+    return `redeemed ${b.code}`;
+  }
+);
+
 await app.close();
 console.log(failures ? `\nПровалено проверок: ${failures}` : '\nВсе проверки пройдены.');
 process.exit(failures ? 1 : 0);

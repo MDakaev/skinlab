@@ -193,6 +193,111 @@
 body {
   background: var(--page-bg);
   min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* Telegram Mini App: мягкая интеграция theme vars, без превращения в TG-клон */
+html.is-telegram {
+  --tg-safe-top: var(--tg-safe-area-top, env(safe-area-inset-top, 0px));
+  --tg-safe-bottom: var(--tg-safe-area-bottom, env(safe-area-inset-bottom, 0px));
+}
+
+html.is-telegram body {
+  /* Фон чуть ближе к клиенту Telegram, бренд Botanica сохраняется */
+  background:
+    radial-gradient(90% 70% at 100% 0%, rgba(var(--azure-rgb), 0.12), transparent 55%),
+    radial-gradient(80% 60% at 0% 100%, rgba(var(--steel-rgb), 0.22), transparent 50%),
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, var(--tg-theme-bg-color, var(--cream)) 70%, var(--cream)) 0%,
+      var(--oat) 50%,
+      color-mix(in srgb, var(--tg-theme-secondary-bg-color, #e5ddd0) 40%, #e5ddd0) 100%
+    );
+}
+
+html.is-telegram .stage {
+  min-height: 100dvh;
+  min-height: var(--tg-viewport-stable-height, 100dvh);
+  padding: 0;
+}
+
+html.is-telegram .stage__leaf {
+  opacity: 0.22;
+}
+
+html.is-telegram .phone {
+  width: 100%;
+  height: 100dvh;
+  height: var(--tg-viewport-stable-height, 100dvh);
+  max-height: none;
+  border-radius: 0;
+  box-shadow: none;
+  --chrome-top: calc(58px + var(--tg-safe-top, env(safe-area-inset-top, 0px)));
+  --chrome-bottom: calc(88px + var(--tg-safe-bottom, env(safe-area-inset-bottom, 0px)));
+}
+
+html.is-telegram .topbar {
+  padding-top: max(12px, var(--tg-safe-top, env(safe-area-inset-top, 0px)));
+}
+
+html.is-telegram .tabbar {
+  bottom: max(10px, var(--tg-safe-bottom, env(safe-area-inset-bottom, 0px)));
+  padding-bottom: 6px;
+}
+
+html.is-telegram .btn-primary {
+  background: var(--fill-strong);
+  color: var(--on-fill);
+}
+
+.tg-card,
+.dev-diag {
+  padding: 16px 18px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  border: 1px solid var(--line);
+}
+
+.tg-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.dev-diag {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.dev-diag h2 {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 10px;
+}
+
+.dev-diag dl {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.dev-diag dl > div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px;
+}
+
+.dev-diag dt {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.dev-diag dd {
+  margin: 0;
+  word-break: break-word;
 }
 
 .stage {
@@ -733,9 +838,18 @@ body {
 }
 
 .focus__actions {
-  display: grid;
-  grid-template-columns: 1fr auto;
+  display: flex;
+  flex-wrap: wrap;
   gap: 10px;
+}
+
+.focus__actions .btn-primary {
+  flex: 1 1 auto;
+  min-width: min(100%, 160px);
+}
+
+.focus__actions .btn-second {
+  flex: 0 1 auto;
 }
 
 /* Группы сочетаний */
@@ -2080,6 +2194,149 @@ body {
 
 .ideal-cta .btn-primary:disabled {
   opacity: 0.7;
+}
+
+.paywall {
+  display: grid;
+  gap: 10px;
+  padding: 18px 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--brand) 10%, var(--surface)), var(--surface));
+  box-shadow: 0 10px 28px rgba(var(--navy-rgb), 0.06);
+}
+
+.paywall__badge {
+  justify-self: start;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--brand-deep);
+  background: color-mix(in srgb, var(--brand) 14%, transparent);
+}
+
+.paywall h2 {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 1.35rem;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.paywall > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.paywall__price {
+  font-family: var(--font-head);
+  font-size: 1.6rem !important;
+  color: var(--text) !important;
+  font-weight: 560;
+}
+
+.paywall__fine {
+  font-size: 12px !important;
+}
+
+.paywall__fine a,
+.license-card a,
+.license-sheet a {
+  color: var(--brand-deep);
+}
+
+.license-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.license-card.is-on {
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--line));
+  background: color-mix(in srgb, var(--brand) 8%, var(--surface));
+}
+
+.license-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.license-card__head b {
+  font-size: 15px;
+  color: var(--text);
+}
+
+.license-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.license-card code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.license-sheet {
+  display: grid;
+  gap: 12px;
+}
+
+.license-sheet__price {
+  margin: 0;
+  font-family: var(--font-head);
+  font-size: 2rem;
+  font-weight: 560;
+  color: var(--text);
+}
+
+.license-sheet__field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.license-sheet__field input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.license-sheet__accept {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.license-sheet__accept input {
+  margin-top: 3px;
 }
 
 .excluded {

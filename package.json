@@ -13,7 +13,9 @@
     "web": "./start.sh",
     "seed": "node server/scripts/seed-demo.js",
     "import:obf": "node server/scripts/import-obf.js",
-    "smoke": "node server/scripts/smoke.js"
+    "smoke": "node server/scripts/smoke.js",
+    "bot": "node server/scripts/telegram-bot-poll.js",
+    "bot:configure": "node server/scripts/telegram-configure.js"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",

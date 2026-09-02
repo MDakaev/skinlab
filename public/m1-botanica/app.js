@@ -35,6 +35,33 @@ import { registerSW, setupInstall } from '../shared/pwa.js';
 import { enhanceHScroll } from '../shared/hscroll.js';
 import { THEME_OPTIONS, applyTheme, nextTheme, watchSystemTheme } from '../shared/theme.js';
 import { createDrawer } from '../shared/fluid.js';
+import {
+  isLicensed,
+  loadLicense,
+  paywallCard,
+  LICENSE_PRICE,
+  OFFER_PATH,
+  PRIVACY_PATH,
+  fetchLicenseOffer,
+  startCheckout,
+  redeemLicense,
+  claimPendingPayment,
+  licenseErrorText,
+} from '../shared/license.js';
+import {
+  bootTelegram,
+  isTelegramApp,
+  getTelegramUser,
+  showBackButton,
+  hideBackButton,
+  showMainButton,
+  hideMainButton,
+  getEnvDiagnostics,
+  shouldShowDiagnostics,
+} from '../shared/telegram.js';
+import { shareResult } from '../shared/share.js';
+
+bootTelegram();
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -50,6 +77,7 @@ const toastEl = $('#toast');
 const sheetDrawer = createDrawer(sheet, {
   onClose: () => {
     if (overlay.hidden) document.body.style.overflow = '';
+    syncTelegramChrome();
   },
 });
 const overlayDrawer = createDrawer(overlay, {
@@ -59,6 +87,7 @@ const overlayDrawer = createDrawer(overlay, {
     }
     state.overlay = null;
     if (sheet.hidden) document.body.style.overflow = '';
+    syncTelegramChrome();
   },
 });
 
@@ -70,11 +99,15 @@ const state = {
   query: '',
   concern: null,
   profile: loadProfile(),
-  /** 'onboard' | 'help' | 'quiz' | 'apply' | null */
+  /** 'onboard' | 'help' | 'quiz' | 'apply' | 'hydration' | 'license' | null */
   overlay: null,
   onboardStep: 0,
   quizAnswers: {},
   quizResult: null,
+  /** 'buy' | 'redeem' */
+  licenseMode: 'buy',
+  licenseBusy: false,
+  licenseOffer: null,
 };
 
 /** Активы, с которых женщины чаще всего начинают разбираться в сочетаниях. */
@@ -102,6 +135,39 @@ function toast(text) {
   toastEl.classList.add('is-on');
   clearTimeout(toast._t);
   toast._t = setTimeout(() => toastEl.classList.remove('is-on'), 2800);
+}
+
+/** BackButton закрывает drawer; MainButton — только точечный CTA. */
+function syncTelegramChrome() {
+  if (!isTelegramApp()) {
+    hideBackButton();
+    hideMainButton();
+    return;
+  }
+
+  const drawerOpen = !overlay.hidden || !sheet.hidden;
+  if (drawerOpen) {
+    showBackButton(() => {
+      if (!overlay.hidden) closeOverlay();
+      else if (!sheet.hidden) closeSheet();
+    });
+  } else {
+    hideBackButton();
+  }
+
+  // MainButton: пустой «Мой уход» → собрать идеал (если не открыт drawer).
+  const emptyPlan = state.tab === 'plan' && !state.profile.shelf.length && !drawerOpen;
+  if (emptyPlan) {
+    showMainButton('Собрать уход', () => {
+      if (!isLicensed()) {
+        openOverlay('license', { mode: 'buy' });
+        return;
+      }
+      go('ideal');
+    });
+  } else {
+    hideMainButton();
+  }
 }
 
 const onShelf = (id) => state.profile.shelf.includes(id);
@@ -295,6 +361,7 @@ function focusView(a) {
             ${onShelf(a.id) ? '✓ В моём уходе' : '+ В мой уход'}
           </button>
           <button class="btn-second" data-detail="${a.id}">Подробнее</button>
+          <button class="btn-second" type="button" data-share-active="${a.id}">Поделиться</button>
         </div>
       </article>
 
@@ -342,6 +409,7 @@ function bucketBlock(bucket, items) {
 
 function idealScreen() {
   const p = state.profile;
+  const licensed = isLicensed();
   const ideal = idealRoutine(p);
   const plan = weeklyPlan(ideal.ids, { experience: ideal.experience, pregnant: ideal.pregnant });
   const adopted = ideal.ids.every((id) => p.shelf.includes(id));
@@ -357,6 +425,9 @@ function idealScreen() {
 
       ${idealSettings(p, ideal)}
 
+      ${
+        licensed
+          ? `
       ${ideal.notes.length ? noteList(ideal.notes) : ''}
 
       <div class="routine-cols">
@@ -399,6 +470,15 @@ function idealScreen() {
 
       <button class="btn-second" data-open-hydration>Почему увлажняющий крем обязателен</button>
       ${medicalDisclaimer({ long: true })}
+      `
+          : `
+      ${paywallCard({
+        title: 'Соберите идеальную рутину',
+        text: 'Настройки выше бесплатны. Полный утренний и вечерний план, неделя и перенос в «Мой уход» — по разовой лицензии.',
+      })}
+      ${medicalDisclaimer()}
+      `
+      }
     </div>`;
 }
 
@@ -511,6 +591,7 @@ function planScreen() {
   const personal = shelf.flatMap((a) =>
     personalNotes(a, { skipMoisturizer: true }).map((n) => ({ ...n, text: `${a.name}: ${n.text}` }))
   );
+  const licensed = isLicensed();
 
   const V = LEVELS[combo.verdict.level];
 
@@ -531,7 +612,9 @@ function planScreen() {
 
       ${personal.length ? `<div><div class="section-title"><h2>Важно для вас</h2></div>${noteList(personal)}</div>` : ''}
 
-      <div>
+      ${
+        licensed
+          ? `<div>
         <div class="section-title">
           <h2>Неделя без конфликтов ${tipBtn('Сильные активы чередуем по дням. Режим «мягче» снижает частоту, пока кожа привыкает.')}</h2>
           <button data-experience-toggle>${state.profile.experience === 'start' ? 'Кожа привыкла?' : 'Начать мягче'}</button>
@@ -543,7 +626,12 @@ function planScreen() {
         }</p>
         ${weekView(plan)}
         ${plan.notes.length ? noteList(plan.notes) : ''}
-      </div>
+      </div>`
+          : paywallCard({
+              title: 'Недельный план — в лицензии',
+              text: 'Набор активов и проверка сочетаний доступны бесплатно. Расписание по дням без конфликтов открывается разовой покупкой.',
+            })
+      }
 
       ${
         problems.length
@@ -679,13 +767,56 @@ function catalogScreen() {
 function meScreen() {
   const p = state.profile;
   const skin = SKIN_TYPES.find((t) => t.id === p.skin);
+  const license = loadLicense();
+  const tgUser = isTelegramApp() ? getTelegramUser() : null;
+  const diag = shouldShowDiagnostics() ? getEnvDiagnostics() : null;
 
   return `
     <div class="screen">
       <div class="hello">
         <h1>Профиль</h1>
-        <p>Всё сохраняется на этом устройстве: тип кожи, задачи, набор активов и настройки.</p>
+        <p>${
+          tgUser
+            ? `Привет${tgUser.firstName ? `, ${esc(tgUser.firstName)}` : ''} — настройки и набор активов на этом устройстве.`
+            : 'Всё сохраняется на этом устройстве: тип кожи, задачи, набор активов и настройки.'
+        }</p>
       </div>
+
+      ${
+        tgUser
+          ? `<section class="tg-card">
+              <div class="tg-card__head"><b>Telegram</b><span class="sl-pill">Mini App</span></div>
+              <p>${esc(tgUser.firstName || 'Пользователь')}${tgUser.username ? ` · @${esc(tgUser.username)}` : ''}</p>
+              <p class="hint">Профиль пока хранится локально. Привязка к аккаунту Telegram появится позже.</p>
+            </section>`
+          : ''
+      }
+
+      <section class="license-card${license ? ' is-on' : ''}">
+        ${
+          license
+            ? `
+          <div class="license-card__head">
+            <b>Лицензия активна</b>
+            <span class="sl-pill">разово</span>
+          </div>
+          <p>Полный идеальный уход и недельный план открыты на этом устройстве.</p>
+          ${license.code ? `<p class="hint">Код: <code>${esc(license.code)}</code> — сохраните его на случай смены браузера.</p>` : ''}
+          <p class="hint">Разовая лицензия не гарантирует вечный онлайн‑сервис. <a href="${OFFER_PATH}" target="_blank" rel="noopener">Оферта</a></p>
+          `
+            : `
+          <div class="license-card__head">
+            <b>SkinLab — полная лицензия</b>
+            <span class="sl-pill">${esc(LICENSE_PRICE.label)}</span>
+          </div>
+          <p>Одна покупка: идеальная рутина и недельный план. Без подписки.</p>
+          <p class="hint">Разовая оплата. Мы не обещаем, что сайт будет доступен вечно — лицензия на приложение, не подписка на сервис.</p>
+          <button type="button" class="btn-primary" data-open-license>Купить лицензию</button>
+          <button type="button" class="btn-second" data-open-license-redeem>Ввести код</button>
+          `
+        }
+        <p class="hint"><a href="${OFFER_PATH}" target="_blank" rel="noopener">Оферта</a> · <a href="${PRIVACY_PATH}" target="_blank" rel="noopener">Конфиденциальность</a></p>
+      </section>
 
       <div class="profile-card">
         <div class="profile-card__row">
@@ -766,6 +897,26 @@ function meScreen() {
         <p class="hint">Данные профиля хранятся только в браузере на этом устройстве (localStorage).</p>
       </section>
 
+      ${
+        diag
+          ? `<section class="dev-diag" aria-label="Диагностика окружения">
+              <h2>Environment (dev)</h2>
+              <dl>
+                <div><dt>Environment</dt><dd>${esc(diag.environment)}</dd></div>
+                <div><dt>Telegram SDK</dt><dd>${esc(diag.sdk)}</dd></div>
+                <div><dt>Platform</dt><dd>${esc(diag.platform || '—')}</dd></div>
+                <div><dt>Telegram user</dt><dd>${
+                  diag.user
+                    ? esc(`${diag.user.firstName || '—'}${diag.user.username ? ` @${diag.user.username}` : ''} · id ${diag.user.id}`)
+                    : '—'
+                }</dd></div>
+                <div><dt>initData</dt><dd>${esc(diag.initData)}${diag.initDataLength ? ` (${diag.initDataLength})` : ''}</dd></div>
+              </dl>
+              <p class="hint">Блок виден только на localhost или с ?debug=1. Полный initData не показывается.</p>
+            </section>`
+          : ''
+      }
+
       <button class="btn-second" id="installInline" hidden>Установить приложение</button>
       <button class="btn-second danger" data-reset>Сбросить настройки и набор</button>
 
@@ -775,14 +926,25 @@ function meScreen() {
 
 /* ---------------- Оверлеи: онбординг, помощь, квиз, нанесение ---------------- */
 
-function openOverlay(kind) {
+function openOverlay(kind, opts = {}) {
   state.overlay = kind;
   if (kind === 'onboard') state.onboardStep = 0;
   if (kind === 'quiz') {
     state.quizAnswers = {};
     state.quizResult = null;
   }
+  if (kind === 'license') {
+    state.licenseMode = opts.mode === 'redeem' ? 'redeem' : 'buy';
+    state.licenseBusy = false;
+    if (!state.licenseOffer) {
+      fetchLicenseOffer().then((offer) => {
+        state.licenseOffer = offer;
+        if (state.overlay === 'license') renderOverlay();
+      });
+    }
+  }
   renderOverlay();
+  syncTelegramChrome();
 }
 
 function closeOverlay() {
@@ -791,6 +953,7 @@ function closeOverlay() {
   }
   state.overlay = null;
   overlayDrawer.close();
+  syncTelegramChrome();
 }
 
 function renderOverlay() {
@@ -804,11 +967,60 @@ function renderOverlay() {
     quiz: quizMarkup,
     apply: applyMarkup,
     hydration: hydrationMarkup,
+    license: licenseMarkup,
   };
   overlayBody.innerHTML = (builders[state.overlay] || helpMarkup)();
   document.body.style.overflow = 'hidden';
   $('.overlay__panel', overlay).scrollTop = 0;
   overlayDrawer.open();
+}
+
+function licenseMarkup() {
+  const offer = state.licenseOffer;
+  const price = offer?.price?.label || LICENSE_PRICE.label;
+  const busy = state.licenseBusy;
+  const redeem = state.licenseMode === 'redeem';
+
+  if (redeem) {
+    return `
+      <div class="license-sheet">
+        <h2 id="overlayTitle">Активировать код</h2>
+        <p class="help__lead">Введите код из оплаты — лицензия сохранится на этом устройстве.</p>
+        <label class="license-sheet__field">
+          <span>Код лицензии</span>
+          <input type="text" id="licenseCode" autocomplete="off" spellcheck="false" placeholder="SL-XXXX-XXXX-XXXX" ${busy ? 'disabled' : ''} />
+        </label>
+        <p class="hint">Код можно вводить повторно после смены браузера. Онлайн‑сервис не гарантируется навсегда — см. <a href="${OFFER_PATH}" target="_blank" rel="noopener">оферту</a>.</p>
+        <div class="onboard__actions">
+          <button type="button" class="btn-second" data-license-mode="buy" ${busy ? 'disabled' : ''}>К покупке</button>
+          <button type="button" class="btn-primary" data-license-redeem ${busy ? 'disabled' : ''}>${busy ? 'Проверяем…' : 'Активировать'}</button>
+        </div>
+      </div>`;
+  }
+
+  return `
+    <div class="license-sheet">
+      <p class="onboard__eyebrow">Разовая покупка</p>
+      <h2 id="overlayTitle">SkinLab — полная лицензия</h2>
+      <p class="help__lead">Идеальная рутина и недельный план без конфликтов. Справочник сочетаний остаётся бесплатным.</p>
+      <p class="license-sheet__price">${esc(price)}</p>
+      <p class="hint">
+        Разовая оплата. Мы не обещаем, что сайт будет доступен вечно — это лицензия на использование приложения, а не подписка на сервис.
+      </p>
+      <label class="license-sheet__accept">
+        <input type="checkbox" id="licenseAccept" ${busy ? 'disabled' : ''} />
+        <span>Принимаю <a href="${OFFER_PATH}" target="_blank" rel="noopener">оферту</a> и <a href="${PRIVACY_PATH}" target="_blank" rel="noopener">политику конфиденциальности</a></span>
+      </label>
+      ${
+        offer && offer.mode === 'disabled'
+          ? '<p class="hint">Онлайн‑оплата пока не подключена. Если код уже есть — активируйте его.</p>'
+          : ''
+      }
+      <div class="onboard__actions">
+        <button type="button" class="btn-second" data-license-mode="redeem" ${busy ? 'disabled' : ''}>У меня есть код</button>
+        <button type="button" class="btn-primary" data-license-buy ${busy ? 'disabled' : ''}>${busy ? 'Открываем…' : 'Купить'}</button>
+      </div>
+    </div>`;
 }
 
 function onboardMarkup() {
@@ -987,6 +1199,9 @@ function render({ keepScroll = false } = {}) {
   view.scrollTop = keepScroll ? top : 0;
   enhanceHScroll(view);
   if (state.tab === 'me') setupInstall($('#installInline'), { onHint: toast });
+  const installTop = $('#install');
+  if (installTop && isTelegramApp()) installTop.hidden = true;
+  syncTelegramChrome();
 }
 
 function go(tab, { focus } = {}) {
@@ -1016,16 +1231,36 @@ function openDetail(id) {
   document.body.style.overflow = 'hidden';
   $('.sheet__panel', sheet).scrollTop = 0;
   sheetDrawer.open();
+  syncTelegramChrome();
 }
 
 function closeSheet() {
   sheetDrawer.close();
+  syncTelegramChrome();
 }
 
 /* ---------------- События ---------------- */
 
 document.addEventListener('click', (e) => {
   const t = e.target;
+
+  const shareBtn = t.closest('[data-share-active]');
+  if (shareBtn) {
+    const id = shareBtn.dataset.shareActive;
+    const a = getActive(id);
+    if (!a) return;
+    const rel = relationsOf(a.id);
+    const great = rel.great.slice(0, 3).map((r) => r.active.name);
+    shareResult({
+      actives: [a.name, ...great],
+      verdict: great.length ? `Хорошо сочетается с: ${great.join(', ')}` : `${a.name} — карточка в SkinLab`,
+      url: location.href,
+    }).then((r) => {
+      if (r.ok && r.via === 'clipboard') toast('Скопировано');
+      else if (!r.ok && r.error !== 'aborted') toast('Не удалось поделиться');
+    });
+    return;
+  }
 
   const tipToggle = t.closest('[data-tip-toggle]');
   if (tipToggle) {
@@ -1136,11 +1371,83 @@ document.addEventListener('click', (e) => {
   }
 
   if (t.closest('[data-adopt-ideal]')) {
+    if (!isLicensed()) {
+      openOverlay('license', { mode: 'buy' });
+      return toast('Сначала нужна разовая лицензия');
+    }
     const ideal = idealRoutine(state.profile);
     const merged = [...new Set([...state.profile.shelf, ...ideal.ids])];
     state.profile = saveProfile({ shelf: merged });
     go('plan');
     return toast('Идеальный уход перенесён в «Мой уход»');
+  }
+
+  if (t.closest('[data-open-license]')) {
+    openOverlay('license', { mode: 'buy' });
+    return;
+  }
+
+  if (t.closest('[data-open-license-redeem]')) {
+    openOverlay('license', { mode: 'redeem' });
+    return;
+  }
+
+  const licenseMode = t.closest('[data-license-mode]');
+  if (licenseMode) {
+    state.licenseMode = licenseMode.dataset.licenseMode === 'redeem' ? 'redeem' : 'buy';
+    return renderOverlay();
+  }
+
+  if (t.closest('[data-license-buy]')) {
+    const accept = $('#licenseAccept');
+    if (!accept?.checked) return toast('Нужно принять оферту');
+    if (state.licenseBusy) return;
+    state.licenseBusy = true;
+    renderOverlay();
+    startCheckout().then((result) => {
+      state.licenseBusy = false;
+      if (!result.ok) {
+        renderOverlay();
+        return toast(licenseErrorText(result.error));
+      }
+      if (result.mode === 'dev' && result.code) {
+        return redeemLicense(result.code).then((redeemed) => {
+          if (!redeemed.ok) {
+            renderOverlay();
+            return toast(licenseErrorText(redeemed.error));
+          }
+          closeOverlay();
+          render();
+          return toast('Лицензия активирована (dev)');
+        });
+      }
+      if (result.confirmationUrl) {
+        location.href = result.confirmationUrl;
+        return;
+      }
+      renderOverlay();
+      return toast(licenseErrorText(result.error || 'checkout_failed'));
+    });
+    return;
+  }
+
+  if (t.closest('[data-license-redeem]')) {
+    const input = $('#licenseCode');
+    const code = input?.value || '';
+    if (state.licenseBusy) return;
+    state.licenseBusy = true;
+    renderOverlay();
+    redeemLicense(code).then((result) => {
+      state.licenseBusy = false;
+      if (!result.ok) {
+        renderOverlay();
+        return toast(licenseErrorText(result.error));
+      }
+      closeOverlay();
+      render();
+      return toast('Лицензия активирована');
+    });
+    return;
   }
 
   const skin = t.closest('[data-skin]');
@@ -1241,6 +1548,49 @@ render();
 syncThemeButton();
 registerSW();
 setupInstall($('#install'), { onHint: toast });
+
+async function bootLicenseReturn() {
+  const url = new URL(location.href);
+  const licenseFlag = url.searchParams.get('license');
+  const unlockCode = url.searchParams.get('unlock');
+
+  if (unlockCode) {
+    const result = await redeemLicense(unlockCode);
+    url.searchParams.delete('unlock');
+    history.replaceState(null, '', `${url.pathname}?${url.searchParams}`);
+    if (result.ok) {
+      render();
+      toast('Лицензия активирована');
+    } else {
+      toast(licenseErrorText(result.error));
+      openOverlay('license', { mode: 'redeem' });
+    }
+    return;
+  }
+
+  if (licenseFlag === 'return') {
+    state.tab = 'me';
+    syncUrl();
+    const result = await claimPendingPayment();
+    url.searchParams.delete('license');
+    history.replaceState(null, '', `${url.pathname}?${url.searchParams}`);
+    if (result.ok) {
+      render();
+      toast('Оплата прошла — лицензия активна');
+    } else if (result.error === 'payment_pending') {
+      render();
+      toast(licenseErrorText('payment_pending'));
+    } else if (result.error !== 'no_pending') {
+      render();
+      toast(licenseErrorText(result.error));
+      openOverlay('license', { mode: 'redeem' });
+    } else {
+      render();
+    }
+  }
+}
+
+bootLicenseReturn();
 
 if (!state.profile.onboarded) {
   openOverlay('onboard');

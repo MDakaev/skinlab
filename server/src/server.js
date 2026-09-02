@@ -1,5 +1,9 @@
+import './loadEnv.js';
+
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { registerRoutes } from './routes.js';
 import { getDb, countProducts } from './db.js';
 
@@ -25,4 +29,5 @@ async function main() {
   }
 }
 
-main();
+const isMain = process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1]);
+if (isMain) main();

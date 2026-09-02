@@ -23,6 +23,22 @@ import { matchActives, parseIngredients } from './inci.js';
 import { analyzeActives } from './analyze.js';
 import { fetchProduct } from './obf.js';
 import { MEDICAL_DISCLAIMER } from '../../public/shared/guide.js';
+import {
+  getOffer,
+  checkout as licenseCheckout,
+  redeemLicense,
+  handleYooWebhook,
+  syncPayment,
+  issueLicense,
+  devLicensesEnabled,
+} from './license.js';
+import {
+  validateInitData,
+  telegramConfigured,
+  redactInitData,
+  webhookSecretHint,
+} from './telegram/auth.js';
+import { processUpdate, botStatus } from './telegram/bot.js';
 
 const asInt = (v, def) => {
   const n = Number.parseInt(v, 10);
@@ -150,5 +166,100 @@ export async function registerRoutes(app) {
       ingredients: ingredientsMatched,
       analysis,
     };
+  });
+
+  /* ---------- Разовая лицензия ---------- */
+
+  app.get('/api/license/offer', async () => getOffer());
+
+  app.post('/api/license/checkout', async (req, reply) => {
+    const returnUrl =
+      typeof req.body?.returnUrl === 'string' && req.body.returnUrl.startsWith('http')
+        ? req.body.returnUrl
+        : 'http://127.0.0.1:4173/m1-botanica/?tab=me&license=return';
+    const result = await licenseCheckout({ returnUrl });
+    if (!result.ok) return reply.code(400).send(result);
+    return result;
+  });
+
+  app.post('/api/license/redeem', async (req, reply) => {
+    const code = req.body?.code;
+    const result = redeemLicense(code);
+    if (!result.ok) {
+      const status = result.error === 'not_found' ? 404 : 400;
+      return reply.code(status).send(result);
+    }
+    return result;
+  });
+
+  app.get('/api/license/payment/:id', async (req, reply) => {
+    const result = await syncPayment(req.params.id);
+    if (!result.ok) return reply.code(400).send(result);
+    return result;
+  });
+
+  app.post('/api/license/webhook/yookassa', async (req) => {
+    // ЮKassa шлёт JSON event; подпись IP можно ужесточить позже.
+    return handleYooWebhook(req.body || {});
+  });
+
+  /** Только для локальной разработки: выдать код без оплаты. */
+  app.post('/api/license/dev-issue', async (req, reply) => {
+    if (!devLicensesEnabled()) return reply.code(404).send({ error: 'not_found' });
+    const issued = issueLicense({ meta: { via: 'dev-issue' } });
+    return { ok: true, code: issued.code };
+  });
+
+  /* ---------- Telegram Mini App / bot ---------- */
+
+  app.get('/api/telegram/status', async () => ({
+    ok: true,
+    ...botStatus(),
+  }));
+
+  /**
+   * Валидация initData. Клиентский user.id НЕ принимается как доказательство —
+   * только подписанная строка initData.
+   */
+  app.post('/api/telegram/auth', async (req, reply) => {
+    const initData = typeof req.body?.initData === 'string' ? req.body.initData : '';
+    req.log.info({ init: redactInitData(initData) }, 'telegram auth attempt');
+
+    if (!telegramConfigured()) {
+      return reply.code(503).send({ ok: false, error: 'telegram_not_configured' });
+    }
+
+    const result = validateInitData(initData);
+    if (!result.ok) {
+      return reply.code(401).send({ ok: false, error: result.error });
+    }
+
+    return {
+      ok: true,
+      user: result.user,
+      authDate: result.authDate,
+    };
+  });
+
+  /**
+   * Webhook бота. Опциональный query ?secret=… (см. webhookSecretHint).
+   * Без TELEGRAM_BOT_TOKEN отвечает 503.
+   */
+  app.post('/api/telegram/webhook', async (req, reply) => {
+    if (!telegramConfigured()) {
+      return reply.code(503).send({ ok: false, error: 'telegram_not_configured' });
+    }
+    const expected = webhookSecretHint();
+    const got = typeof req.query?.secret === 'string' ? req.query.secret : '';
+    if (expected && got && got !== expected) {
+      return reply.code(403).send({ ok: false, error: 'forbidden' });
+    }
+    try {
+      const result = await processUpdate(req.body || {});
+      return result;
+    } catch (err) {
+      req.log.warn({ err: err.message }, 'telegram webhook failed');
+      return reply.code(502).send({ ok: false, error: 'telegram_api_error' });
+    }
   });
 }
