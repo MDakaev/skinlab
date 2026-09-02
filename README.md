@@ -89,7 +89,11 @@ npm run smoke
 - `GET /api/products/:barcode`
 - `POST /api/analyze`
 
-## Деплой на GitHub Pages
+## Деплой
+
+- **VDS (production):** [`docs/production-deploy.md`](docs/production-deploy.md) — Nginx, systemd, webhook, SQLite.
+- Примеры unit/nginx: [`deploy/`](deploy/).
+- GitHub Pages (только статика, без API):
 
 ```bash
 git push origin main

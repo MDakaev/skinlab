@@ -70,37 +70,33 @@ TELEGRAM_WEBAPP_URL=https://mdakaev.github.io/skinlab/
 
 ---
 
-## 6. Webhook бота (опционально, для /start)
+## 6. Webhook бота (production)
 
-Чтобы бот отвечал на `/start` сообщением с кнопкой WebApp, нужен **публичный HTTPS** backend (GitHub Pages для API не подходит).
+Чтобы бот отвечал на `/start`, нужен **публичный HTTPS** backend (GitHub Pages для API не подходит).
+На VDS используйте webhook; `npm run bot` (polling) — только локально и **не** вместе с webhook.
 
-Эндпоинт:
+Эндпоинт (query `secret` **обязателен**):
 
-`POST https://ВАШ-API/api/telegram/webhook?secret=СЕКРЕТ`
+`POST https://ВАШ-ДОМЕН/api/telegram/webhook?secret=СЕКРЕТ`
 
-Секрет можно получить на сервере из `webhookSecretHint()` (см. `server/src/telegram/auth.js`) — это короткий hash от токена, не сам токен.
-
-Установка webhook через Bot API (с сервера, не из браузера):
+Секрет на сервере: `webhookSecretHint()` (`server/src/telegram/auth.js`) — короткий hash от токена, не сам токен.
 
 ```bash
 curl "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/setWebhook" \
-  -d "url=https://ВАШ-API/api/telegram/webhook?secret=ВАШ_SECRET"
+  -d "url=https://ВАШ-ДОМЕН/api/telegram/webhook?secret=ВАШ_SECRET" \
+  -d "allowed_updates=[\"message\"]"
 ```
 
-На первом этапе достаточно Menu Button без webhook: Mini App уже открывается.
+Полный чеклист: [`docs/production-deploy.md`](production-deploy.md).
+
+Menu Button без webhook уже открывает Mini App.
 
 ### Быстрая настройка из проекта
 
-Если в `.env` есть `TELEGRAM_BOT_TOKEN`:
-
 ```bash
 npm run bot:configure   # команды, описание, Menu Button
-npm run bot             # long polling: бот отвечает на /start /help /tip
+npm run bot             # long polling — только dev; при NODE_ENV=production отключён
 ```
-
-`bot:configure` ставит список команд, описание профиля бота и кнопку меню на Mini App.
-`npm run bot` нужен, чтобы бот **отвечал** в чате (без публичного webhook).
-
 ---
 
 ## 7. Частые ошибки

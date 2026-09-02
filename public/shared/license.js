@@ -16,6 +16,12 @@ export const LICENSE_PRICE = {
 export const OFFER_PATH = '../legal/offer.html';
 export const PRIVACY_PATH = '../legal/privacy.html';
 
+/**
+ * База API без завершающего `/`.
+ * - localhost/127.0.0.1 → отдельный Fastify :8787 (локальная разработка)
+ * - иначе → '' (same-origin `/api/...` через Nginx на production)
+ * Override: localStorage `skinlab.api`
+ */
 function apiBase() {
   try {
     const override = localStorage.getItem('skinlab.api');
@@ -26,6 +32,11 @@ function apiBase() {
   const host = location.hostname;
   if (host === '127.0.0.1' || host === 'localhost') return 'http://127.0.0.1:8787';
   return '';
+}
+
+function apiUrl(path) {
+  const p = path.startsWith('/') ? path : `/${path}`;
+  return `${apiBase()}${p}`;
 }
 
 export function loadLicense() {
@@ -71,18 +82,8 @@ function normalizeCode(code) {
  * @returns {Promise<{ ok: boolean, mode?: string, price?: object, payments?: boolean, error?: string }>}
  */
 export async function fetchLicenseOffer() {
-  const base = apiBase();
-  if (!base) {
-    return {
-      ok: true,
-      mode: 'offline',
-      payments: false,
-      price: LICENSE_PRICE,
-      error: null,
-    };
-  }
   try {
-    const res = await fetch(`${base}/api/license/offer`, { credentials: 'omit' });
+    const res = await fetch(apiUrl('/api/license/offer'), { credentials: 'omit' });
     if (!res.ok) throw new Error('offer_http');
     const body = await res.json();
     return {
@@ -110,10 +111,8 @@ export async function fetchLicenseOffer() {
 const PENDING_PAYMENT_KEY = 'skinlab.pendingPayment';
 
 export async function startCheckout() {
-  const base = apiBase();
-  if (!base) return { ok: false, error: 'api_unreachable' };
   try {
-    const res = await fetch(`${base}/api/license/checkout`, {
+    const res = await fetch(apiUrl('/api/license/checkout'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -143,17 +142,16 @@ export async function startCheckout() {
 
 /** После возврата из ЮKassa — забрать код по paymentId. */
 export async function claimPendingPayment() {
-  const base = apiBase();
   let paymentId = null;
   try {
     paymentId = sessionStorage.getItem(PENDING_PAYMENT_KEY);
   } catch {
     /* ignore */
   }
-  if (!base || !paymentId) return { ok: false, error: 'no_pending' };
+  if (!paymentId) return { ok: false, error: 'no_pending' };
 
   try {
-    const res = await fetch(`${base}/api/license/payment/${encodeURIComponent(paymentId)}`);
+    const res = await fetch(apiUrl(`/api/license/payment/${encodeURIComponent(paymentId)}`));
     const body = await res.json().catch(() => ({}));
     if (!res.ok) return { ok: false, error: body.error || 'sync_failed' };
     if (!body.code) return { ok: false, error: 'payment_pending', status: body.status };
@@ -180,15 +178,8 @@ export async function redeemLicense(rawCode) {
   const code = normalizeCode(rawCode);
   if (!code || code.length < 8) return { ok: false, error: 'invalid_code' };
 
-  const base = apiBase();
-  if (!base) {
-    // Офлайн: принимаем только уже сохранённый тот же код нельзя выдать —
-    // без сервера redeem новых кодов недоступен.
-    return { ok: false, error: 'api_unreachable' };
-  }
-
   try {
-    const res = await fetch(`${base}/api/license/redeem`, {
+    const res = await fetch(apiUrl('/api/license/redeem'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ code }),

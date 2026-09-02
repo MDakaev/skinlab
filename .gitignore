@@ -7,11 +7,16 @@ node_modules/
 .shots/
 .verify/
 
-# backend
+# backend data & secrets
 data/
 *.db
 *.db-shm
 *.db-wal
-package-lock.json
 .env
 .env.local
+
+# локальный экспорт SQLite перед scp на VDS
+tmp-sqlite-export/
+
+# lockfile ДОЛЖЕН быть в Git (воспроизводимые install на VDS)
+# не игнорируйте package-lock.json

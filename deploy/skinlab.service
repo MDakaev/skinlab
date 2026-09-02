@@ -1,0 +1,25 @@
+[Unit]
+Description=SkinLab API (Fastify)
+After=network.target
+Documentation=file:///home/skinlab/skinlab/docs/production-deploy.md
+
+[Service]
+Type=simple
+User=skinlab
+Group=skinlab
+WorkingDirectory=/home/skinlab/skinlab
+Environment=NODE_ENV=production
+EnvironmentFile=-/home/skinlab/skinlab/.env
+ExecStart=/usr/bin/node server/src/server.js
+Restart=on-failure
+RestartSec=5
+# Не даём сервису писать куда попало сверх WorkingDirectory / SKINLAB_DB
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Soft stop → SIGTERM → graceful close в server.js
+TimeoutStopSec=30
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

@@ -39,11 +39,29 @@ import {
   webhookSecretHint,
 } from './telegram/auth.js';
 import { processUpdate, botStatus } from './telegram/bot.js';
+import { allowRequest, clientKey } from './rateLimit.js';
 
 const asInt = (v, def) => {
   const n = Number.parseInt(v, 10);
   return Number.isFinite(n) && n >= 0 ? n : def;
 };
+
+/** Публичный HTTPS origin без хвостового `/` (production returnUrl / docs). */
+function publicBaseUrl() {
+  const raw =
+    process.env.SKINLAB_PUBLIC_URL ||
+    process.env.TELEGRAM_WEBAPP_URL ||
+    process.env.SKINLAB_WEBAPP_URL ||
+    '';
+  return String(raw).trim().replace(/\/$/, '');
+}
+
+function defaultCheckoutReturnUrl() {
+  const base = publicBaseUrl();
+  if (base) return `${base}/m1-botanica/?tab=me&license=return`;
+  // Только локальная разработка (python start.sh).
+  return 'http://127.0.0.1:4173/m1-botanica/?tab=me&license=return';
+}
 
 function readProfile(src = {}) {
   const skin = typeof src.skin === 'string' ? src.skin : null;
@@ -64,6 +82,9 @@ function decorateProduct(product) {
 }
 
 export async function registerRoutes(app) {
+  /** Короткий health для Nginx / systemd (без деталей каталога). */
+  app.get('/health', async () => ({ ok: true }));
+
   app.get('/api/health', async () => ({
     ok: true,
     products: countProducts(),
@@ -173,16 +194,22 @@ export async function registerRoutes(app) {
   app.get('/api/license/offer', async () => getOffer());
 
   app.post('/api/license/checkout', async (req, reply) => {
+    if (!allowRequest(clientKey(req, 'checkout'), 10, 60_000)) {
+      return reply.code(429).send({ ok: false, error: 'rate_limited' });
+    }
     const returnUrl =
       typeof req.body?.returnUrl === 'string' && req.body.returnUrl.startsWith('http')
         ? req.body.returnUrl
-        : 'http://127.0.0.1:4173/m1-botanica/?tab=me&license=return';
+        : defaultCheckoutReturnUrl();
     const result = await licenseCheckout({ returnUrl });
     if (!result.ok) return reply.code(400).send(result);
     return result;
   });
 
   app.post('/api/license/redeem', async (req, reply) => {
+    if (!allowRequest(clientKey(req, 'redeem'), 20, 60_000)) {
+      return reply.code(429).send({ ok: false, error: 'rate_limited' });
+    }
     const code = req.body?.code;
     const result = redeemLicense(code);
     if (!result.ok) {
@@ -242,8 +269,9 @@ export async function registerRoutes(app) {
   });
 
   /**
-   * Webhook бота. Опциональный query ?secret=… (см. webhookSecretHint).
+   * Webhook бота. Query ?secret=… обязателен (см. webhookSecretHint).
    * Без TELEGRAM_BOT_TOKEN отвечает 503.
+   * Не запускайте npm run bot (polling) одновременно с активным webhook.
    */
   app.post('/api/telegram/webhook', async (req, reply) => {
     if (!telegramConfigured()) {
@@ -251,7 +279,7 @@ export async function registerRoutes(app) {
     }
     const expected = webhookSecretHint();
     const got = typeof req.query?.secret === 'string' ? req.query.secret : '';
-    if (expected && got && got !== expected) {
+    if (!expected || got !== expected) {
       return reply.code(403).send({ ok: false, error: 'forbidden' });
     }
     try {

@@ -13,6 +13,13 @@ import '../src/loadEnv.js';
 import { callBot, processUpdate } from '../src/telegram/bot.js';
 import { telegramConfigured } from '../src/telegram/auth.js';
 
+if (process.env.NODE_ENV === 'production') {
+  console.error(
+    'Polling отключён при NODE_ENV=production. Используйте webhook: POST /api/telegram/webhook?secret=…',
+  );
+  process.exit(1);
+}
+
 if (!telegramConfigured()) {
   console.error('Нет TELEGRAM_BOT_TOKEN в .env');
   process.exit(1);
