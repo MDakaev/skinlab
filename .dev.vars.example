@@ -1,0 +1,17 @@
+# Local secrets for `wrangler dev` (do NOT commit).
+# Copy to `.dev.vars` and fill in with long random values (openssl rand -hex 32).
+# Never use placeholders like "change-me" in production.
+
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_WEBHOOK_SECRET=
+PLATEGA_MERCHANT_ID=
+PLATEGA_SECRET=
+ADMIN_SECRET=
+
+# Optional overrides (also settable in wrangler.toml [vars])
+# PUBLIC_BASE_URL=https://skinlab.skinlabapp.workers.dev
+# SUPPORT_USERNAME=MDakaev
+# SUPPORT_EMAIL=musafir-dakaev@ya.ru
+# PUBLIC_APP_NAME=SkinLab
+# Your numeric Telegram id(s), comma-separated — forever free access
+# OWNER_TELEGRAM_IDS=123456789

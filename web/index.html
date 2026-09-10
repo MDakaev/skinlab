@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>SkinLab — что с чем сочетать в уходе за кожей</title>
+    <meta
+      name="description"
+      content="Справочник сочетаний уход-активов: что можно вместе, что лучше развести по дням. Не заменяет консультацию дерматолога."
+    />
+    <meta name="theme-color" content="#f3eee4" />
+    <script>
+      (() => {
+        try {
+          const pref = JSON.parse(localStorage.getItem('skinlab.profile.v1') || '{}').theme || 'auto';
+          const dark = pref === 'dark' || (pref !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+          document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+          document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+        } catch {
+          document.documentElement.dataset.theme = 'light';
+        }
+      })();
+    </script>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+    <link rel="icon" href="/assets/favicon-64.png" />
+    <link rel="stylesheet" href="/assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="/shared/base.css" />
+    <link rel="stylesheet" href="/theme.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="stage__leaf stage__leaf--a" aria-hidden="true"></div>
+      <div class="stage__leaf stage__leaf--b" aria-hidden="true"></div>
+
+      <div class="phone">
+        <header class="topbar">
+          <a class="brand" href="?tab=pairs">
+            <span class="brand__mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+                <circle cx="9.2" cy="12" r="5.2" />
+                <circle cx="14.8" cy="12" r="5.2" />
+              </svg>
+            </span>
+            <span>
+              <b>SkinLab</b>
+              <i>сочетания</i>
+            </span>
+          </a>
+          <div class="topbar__actions">
+            <button class="ghost-btn" id="plansBtn" type="button">Тарифы</button>
+            <button class="ghost-btn ghost-btn--icon" id="themeBtn" type="button" aria-label="Переключить оформление"></button>
+            <button class="ghost-btn ghost-btn--icon" id="helpBtn" type="button" aria-label="Как пользоваться">?</button>
+            <button class="ghost-btn" id="install" hidden>Установить</button>
+          </div>
+        </header>
+
+        <main class="view" id="view" tabindex="-1"></main>
+
+        <nav class="tabbar" id="tabbar" aria-label="Разделы"></nav>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet" hidden>
+      <div class="sheet__scrim" data-close></div>
+      <section class="sheet__panel" role="dialog" aria-modal="true" aria-label="Карточка актива">
+        <div class="sheet__handle" data-drawer-handle aria-hidden="true"></div>
+        <button class="sheet__close" data-close aria-label="Закрыть"><svg class="sl-uico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.8 6.8 10.4 10.4M17.2 6.8 6.8 17.2"/></svg></button>
+        <div class="sheet__body" id="sheetBody"></div>
+      </section>
+    </div>
+
+    <div class="overlay" id="overlay" hidden>
+      <div class="overlay__scrim" data-overlay-close></div>
+      <section class="overlay__panel" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
+        <div class="overlay__handle" data-drawer-handle aria-hidden="true"></div>
+        <button class="overlay__close" data-overlay-close aria-label="Закрыть"><svg class="sl-uico" width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m6.8 6.8 10.4 10.4M17.2 6.8 6.8 17.2"/></svg></button>
+        <div class="overlay__body" id="overlayBody"></div>
+      </section>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

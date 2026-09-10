@@ -1,0 +1,24 @@
+{
+  "name": "SkinLab — сочетания в уходе за кожей",
+  "short_name": "SkinLab",
+  "description": "Справочник сочетаний уход-активов. Информация носит справочный характер и не заменяет консультацию дерматолога.",
+  "lang": "ru",
+  "dir": "ltr",
+  "start_url": "/?tab=pairs",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3eee4",
+  "theme_color": "#f3eee4",
+  "categories": ["health", "lifestyle", "beauty"],
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Что с чем сочетать", "short_name": "Сочетания", "url": "/?tab=pairs" },
+    { "name": "Идеальный уход", "short_name": "Идеал", "url": "/?tab=ideal" },
+    { "name": "Мой уход на неделю", "short_name": "Мой уход", "url": "/?tab=plan" }
+  ]
+}

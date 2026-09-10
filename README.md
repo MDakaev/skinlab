@@ -1,104 +1,139 @@
 # SkinLab
 
-PWA-справочник по активным ингредиентам в уходе за кожей. SkinLab показывает
-совместимость активов, помогает собрать персональную рутину и раскладывает уход
-по дням без конфликтующих сочетаний.
+Telegram-бот + Mini App помощник по уходу за кожей.
 
-Интерфейс основан на дизайне Botanica; альтернативные макеты удалены.
+Стек: **Cloudflare Workers** (Hono) + **D1** + статическая Mini App. Платежи: **Platega**. Подходит для запуска из РФ (Workers ходят к `api.telegram.org` без прокси).
 
-## Запуск приложения
+Продукт рассчитан на передачу целиком: исходники, README, [PROJECT_GUIDE.md](PROJECT_GUIDE.md), [HANDOFF.md](HANDOFF.md), чеклист [SHIP.md](SHIP.md).
 
-```bash
-./start.sh
-# или
-python3 -m http.server 4173 --directory public --bind 127.0.0.1
-```
+## Что умеет
 
-Откройте <http://127.0.0.1:4173>. Рабочее приложение находится в
-`public/m1-botanica/`, а корень сайта сразу перенаправляет в него.
-
-Прод: <https://mdakaev.github.io/skinlab/>
-
-## Возможности
-
-- справочник активов с противопоказаниями, способом применения и источниками;
-- проверка хороших, нейтральных, осторожных и запрещённых сочетаний;
-- персональный подбор по типу кожи, задачам и беременности;
-- недельное расписание без конфликтующих активов;
-- локальный профиль и светлая/тёмная тема;
-- установка как PWA и офлайн-режим.
-
-Данные профиля хранятся только в `localStorage`.
-
-## Лицензия (разовая покупка)
-
-Полный **Идеал** и недельный план в **Мой уход** открываются разовой лицензией.
-Справочник сочетаний и активы бесплатны.
-
-- Оферта: [`public/legal/offer.html`](public/legal/offer.html) — явно без гарантии вечного хостинга
-- API: `GET /api/license/offer`, `POST /api/license/checkout`, `POST /api/license/redeem`
-- Dev без ЮKassa: `SKINLAB_DEV_LICENSES=1` (см. `.env.example`)
-- Live: задайте `YOOKASSA_SHOP_ID` и `YOOKASSA_SECRET_KEY`
-
-Локально: поднимите API (`npm start`) рядом с `./start.sh`, иначе кнопка «Купить» не достучится до сервера.
-
-## Telegram Mini App
-
-SkinLab открывается и как обычный Web/PWA, и как Telegram Mini App (тот же Botanica UI).
-
-- План: [`docs/telegram-mini-app-plan.md`](docs/telegram-mini-app-plan.md)
-- BotFather: [`docs/telegram-setup.md`](docs/telegram-setup.md)
-- Разработка: [`docs/telegram-development.md`](docs/telegram-development.md)
-- Монетизация: [`docs/telegram-monetization.md`](docs/telegram-monetization.md)
-
-В `.env`: `TELEGRAM_BOT_TOKEN` (только backend), `TELEGRAM_WEBAPP_URL`.
+- Бот: `/start`, кнопки «Открыть SkinLab», «Совет», «Инфо», «Поддержка»
+- Mini App: полный UI (сочетания, идеал, мой уход, профиль) + **3 дня trial** + подписка Platega
+- Platega: создание оплаты + webhook → продление `paid_until`
+- Admin: `/admin/` — пользователи, оплаты, выручка (секрет `ADMIN_SECRET`)
+- Legal: `/legal/privacy.html`, `/legal/offer.html` (пользовательское соглашение + тарифы)
+- В боте: кнопки «Соглашение» / «Конфиденциальность», команды `/terms` `/privacy` `/support`
 
 ## Структура
 
-```text
-public/
-  index.html             # вход в SkinLab
-  m1-botanica/           # единственный интерфейс приложения
-  shared/                # данные, экспертная логика и общие UI-модули
-  assets/                # иконки и шрифты
-  manifest.webmanifest   # PWA-манифест
-  sw.js                  # офлайн-кэш
-server/                  # Fastify API и каталог Open Beauty Facts
-tools/                   # служебные скрипты разработки
+```
+src/
+  index.ts          # маршруты Worker
+  telegram/         # Bot API + обработчики апдейтов
+  platega/          # создание платежа + проверка callback
+  db/               # D1-запросы
+  admin/            # auth для статистики
+  lib/              # тарифы, validateInitData
+web/                # Mini App, legal, admin UI
+migrations/         # схема D1
 ```
 
-## API каталога
+Старые папки `server/`, `public/`, `deploy/` — **legacy Selectel/Fastify**, не используются этим деплоем.
+
+## Быстрый старт (локально)
+
+Требования: Node ≥ 20, аккаунт Cloudflare.
 
 ```bash
 npm install
-npm run seed
-npm start
-npm run smoke
+cp .dev.vars.example .dev.vars
+# заполни TELEGRAM_BOT_TOKEN, секреты, Platega (можно позже)
+
+npx wrangler login
+npx wrangler d1 create skinlab
+# вставь database_id в wrangler.toml
+
+npm run db:migrate:local
+npm run dev
 ```
 
-Сервер использует тот же справочник и правила сочетаемости из `public/shared/`,
-поэтому фронтенд и API не расходятся в экспертных данных.
-
-Основные эндпоинты:
-
-- `GET /api/health`
-- `GET /api/meta`
-- `GET /api/actives`
-- `GET /api/actives/:id`
-- `GET /api/products`
-- `GET /api/products/:barcode`
-- `POST /api/analyze`
+Открой `http://127.0.0.1:8787/`. Mini App auth работает только с реальным `initData` из Telegram (в браузере без бота увидишь paywall и подсказку).
 
 ## Деплой
 
-- **VDS (production):** [`docs/production-deploy.md`](docs/production-deploy.md) — Nginx, systemd, webhook, SQLite.
-- Примеры unit/nginx: [`deploy/`](deploy/).
-- GitHub Pages (только статика, без API):
-
 ```bash
-git push origin main
-git push origin "$(git subtree split --prefix public main)":refs/heads/gh-pages --force
+npm run db:migrate:remote
+npm run deploy
 ```
 
-Информация в приложении носит справочный характер и не заменяет консультацию
-дерматолога.
+Секреты в проде:
+
+```bash
+npx wrangler secret put TELEGRAM_BOT_TOKEN
+npx wrangler secret put TELEGRAM_WEBHOOK_SECRET
+npx wrangler secret put PLATEGA_MERCHANT_ID
+npx wrangler secret put PLATEGA_SECRET
+npx wrangler secret put ADMIN_SECRET
+```
+
+В `wrangler.toml` → `[vars]` задай:
+
+- `PUBLIC_BASE_URL` = `https://skinlab.<subdomain>.workers.dev` (или свой домен)
+- `SUPPORT_USERNAME` = username поддержки без `@` (сейчас `MDakaev`)
+- `SUPPORT_EMAIL` = почта поддержки (сейчас `musafir-dakaev@ya.ru`)
+
+### Telegram webhook
+
+Предпочтительно через `secret_token` (секрет в заголовке, не в URL):
+
+```bash
+curl "https://api.telegram.org/bot<TOKEN>/setWebhook" \
+  -d "url=https://YOUR_HOST/telegram/webhook" \
+  -d "secret_token=TELEGRAM_WEBHOOK_SECRET" \
+  -d 'allowed_updates=["message"]'
+```
+
+Старый вариант `?secret=` в URL тоже ещё принимается (совместимость).
+
+Настройка Menu Button / команд:
+
+```bash
+curl -X POST "https://YOUR_HOST/telegram/configure?secret=TELEGRAM_WEBHOOK_SECRET"
+# или: -H "X-Telegram-Bot-Api-Secret-Token: TELEGRAM_WEBHOOK_SECRET"
+```
+
+### Platega
+
+1. В кабинете укажи Callback URL: `https://YOUR_HOST/api/platega/webhook`
+2. Ключи — в secrets Worker (`PLATEGA_MERCHANT_ID`, `PLATEGA_SECRET` обязательны)
+3. В Mini App пользователь получает ссылку оплаты и возвращается на `/?paid=1`
+
+### Admin
+
+Открой `https://YOUR_HOST/admin/` и введи `ADMIN_SECRET` (минимум 16 символов).  
+API принимает только заголовок `X-Admin-Secret` (не `?secret=`).
+
+## Тарифы
+
+Правь в [`src/lib/plans.ts`](src/lib/plans.ts) — единый источник для API и UI.
+
+| plan | срок | цена |
+|------|------|------|
+| m1 | 1 мес | 290 ₽ |
+| m3 | 3 мес | 690 ₽ |
+| m6 | 6 мес | 1190 ₽ |
+| m12 | 12 мес | 1990 ₽ |
+
+## Безопасность
+
+- `initData` проверяется HMAC на сервере
+- Platega: пустые ключи → отказ; CONFIRMED только после проверки API Platega
+- Admin только по `X-Admin-Secret` (длинный секрет)
+- Секреты не коммитить (`.dev.vars`, `.env`)
+
+## Документы
+
+| Файл | Зачем |
+|------|--------|
+| [PROJECT_GUIDE.md](PROJECT_GUIDE.md) | Подробно: что где лежит, как работает, что менять |
+| [HANDOFF.md](HANDOFF.md) | Чеклист передачи покупателю |
+| [SHIP.md](SHIP.md) | Чеклист «готово к продаже / деплою» |
+
+## Передача покупателю
+
+См. [HANDOFF.md](HANDOFF.md) и полный разбор в [PROJECT_GUIDE.md](PROJECT_GUIDE.md).
+
+---
+
+Информация в приложении носит справочный характер и не заменяет консультацию дерматолога.

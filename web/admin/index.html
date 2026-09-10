@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SkinLab Admin</title>
+    <link rel="stylesheet" href="/assets/fonts/fonts.css" />
+    <link rel="stylesheet" href="/shared/base.css" />
+    <link rel="stylesheet" href="/theme.css" />
+    <style>
+      .admin {
+        width: min(920px, 100%);
+        margin: 0 auto;
+        padding: 24px 16px 64px;
+      }
+      .admin h1 {
+        font-family: var(--display, Georgia, serif);
+        font-size: 2rem;
+        margin: 0 0 8px;
+      }
+      .admin h2 {
+        font-size: 1.1rem;
+        margin: 0 0 10px;
+      }
+      .admin .panel {
+        background: var(--surface, #f7f3ea);
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+        border-radius: 14px;
+        padding: 16px;
+        margin: 18px 0;
+      }
+      .admin .muted {
+        color: var(--muted, #6b7280);
+        font-size: 0.9rem;
+      }
+      .admin .err {
+        color: var(--bad, #b42318);
+        margin: 8px 0;
+      }
+      .admin .ok {
+        color: var(--ok, #2a7a4b);
+        margin: 8px 0;
+      }
+      .admin .hidden {
+        display: none !important;
+      }
+      .admin .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
+        margin: 12px 0 0;
+      }
+      .admin .stat {
+        background: var(--surface-2, #ebe4d8);
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+        border-radius: 14px;
+        padding: 14px;
+      }
+      .admin .stat b {
+        display: block;
+        font-family: var(--display, Georgia, serif);
+        font-size: 1.4rem;
+      }
+      .admin .stat span {
+        color: var(--muted, #6b7280);
+        font-size: 0.82rem;
+      }
+      .admin table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.86rem;
+      }
+      .admin th,
+      .admin td {
+        text-align: left;
+        padding: 8px 6px;
+        border-bottom: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+        vertical-align: top;
+      }
+      .admin th {
+        color: var(--muted, #6b7280);
+        font-weight: 600;
+      }
+      .admin .row {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 12px 0 0;
+      }
+      .admin input,
+      .admin select,
+      .admin textarea {
+        flex: 1;
+        min-width: 140px;
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+        border-radius: 10px;
+        padding: 10px 12px;
+        font: inherit;
+        background: var(--surface, #fff);
+      }
+      .admin textarea {
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        box-sizing: border-box;
+      }
+      .admin .btn {
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+        border-radius: 10px;
+        padding: 10px 14px;
+        font: inherit;
+        background: var(--surface-2, #ebe4d8);
+        cursor: pointer;
+      }
+      .admin .btn-primary {
+        background: var(--ink, #1a2b3c);
+        color: #fff;
+        border-color: transparent;
+      }
+      .admin .empty {
+        color: var(--muted, #6b7280);
+        font-size: 0.9rem;
+        margin: 8px 0 0;
+      }
+      .admin .char-row {
+        display: flex;
+        justify-content: flex-end;
+        margin: 6px 0 0;
+      }
+      .admin .char-count {
+        font-size: 0.82rem;
+        color: var(--muted, #6b7280);
+      }
+      .admin .char-count.warn {
+        color: #b45309;
+      }
+      .admin .char-count.bad {
+        color: var(--bad, #b42318);
+        font-weight: 600;
+      }
+      .admin .broadcast-preview {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.14));
+        background: var(--surface-2, #ebe4d8);
+      }
+      .admin .broadcast-preview h3 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+      }
+      .admin .broadcast-preview-msg {
+        white-space: pre-wrap;
+        word-break: break-word;
+        background: var(--surface, #fff);
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+        border-radius: 10px;
+        padding: 12px;
+        margin: 0 0 12px;
+        font-size: 0.95rem;
+        max-height: 240px;
+        overflow: auto;
+      }
+      .admin .broadcast-warn {
+        margin: 0 0 12px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(180, 83, 9, 0.12);
+        border: 1px solid rgba(180, 83, 9, 0.28);
+        color: #7c2d12;
+        font-size: 0.92rem;
+      }
+      .admin .btn-danger {
+        background: var(--bad, #b42318);
+        color: #fff;
+        border-color: transparent;
+      }
+      .admin .bc-history {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      .admin .bc-card {
+        background: var(--surface, #fff);
+        border: 1px solid var(--line, rgba(0, 0, 0, 0.12));
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .admin .bc-card-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: flex-start;
+        margin-bottom: 8px;
+      }
+      .admin .bc-date {
+        color: var(--muted, #6b7280);
+        font-size: 0.86rem;
+      }
+      .admin .bc-badge {
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: var(--surface-2, #ebe4d8);
+        color: var(--ink, #1a2b3c);
+        white-space: nowrap;
+      }
+      .admin .bc-badge.sending,
+      .admin .bc-badge.queued {
+        background: rgba(26, 43, 60, 0.12);
+      }
+      .admin .bc-badge.done {
+        background: rgba(42, 122, 75, 0.14);
+        color: var(--ok, #2a7a4b);
+      }
+      .admin .bc-badge.cancelled {
+        background: rgba(180, 35, 24, 0.12);
+        color: var(--bad, #b42318);
+      }
+      .admin .bc-quote {
+        margin: 0 0 10px;
+        white-space: pre-wrap;
+        word-break: break-word;
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+      .admin .bc-meta {
+        color: var(--muted, #6b7280);
+        font-size: 0.88rem;
+        margin: 0 0 8px;
+      }
+      .admin .bc-stats {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: 0.9rem;
+        line-height: 1.55;
+      }
+      .admin .bc-stats .ok {
+        color: var(--ok, #2a7a4b);
+        margin: 0;
+      }
+      .admin .bc-stats .fail {
+        color: var(--bad, #b42318);
+      }
+      .admin .bc-stats .skip {
+        color: var(--muted, #6b7280);
+      }
+      .admin .bc-progress {
+        margin: 10px 0 0;
+      }
+      .admin .bc-progress-track {
+        height: 8px;
+        border-radius: 999px;
+        background: var(--surface-2, #ebe4d8);
+        overflow: hidden;
+      }
+      .admin .bc-progress-fill {
+        height: 100%;
+        background: var(--ink, #1a2b3c);
+        border-radius: 999px;
+        transition: width 0.3s ease;
+      }
+      .admin .bc-progress-label {
+        margin: 6px 0 0;
+        font-size: 0.82rem;
+        color: var(--muted, #6b7280);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="admin">
+      <h1>SkinLab Admin</h1>
+      <p class="muted">Статистика, активные подписки и оплаты. Секрет не сохраняйте в публичных чатах.</p>
+
+      <div class="row">
+        <input id="secret" type="password" placeholder="ADMIN_SECRET" autocomplete="off" />
+        <button class="btn" id="load" type="button">Обновить</button>
+      </div>
+      <p id="err" class="err hidden"></p>
+      <p id="ok" class="ok muted hidden"></p>
+
+      <section class="panel">
+        <h2>Выдать доступ</h2>
+        <p class="muted" style="margin-top: 0">По telegram_id — навсегда или на N дней.</p>
+        <div class="row">
+          <input id="grantId" type="text" inputmode="numeric" placeholder="Telegram ID" autocomplete="off" />
+          <select id="grantDays">
+            <option value="forever">Навсегда</option>
+            <option value="7">7 дней</option>
+            <option value="30">30 дней</option>
+            <option value="90">90 дней</option>
+            <option value="365">365 дней</option>
+          </select>
+          <button class="btn btn-primary" id="grant" type="button">Выдать</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Рассылка</h2>
+        <p class="muted" style="margin-top: 0">
+          Сообщение уйдёт тем, кто уже нажал Start. Перед отправкой обязателен просмотр превью.
+        </p>
+        <textarea
+          id="broadcastText"
+          maxlength="4096"
+          placeholder="Текст объявления. Ссылки можно вставлять как есть."
+        ></textarea>
+        <div class="char-row">
+          <span id="broadcastChars" class="char-count">0 / 4096</span>
+        </div>
+        <div class="row">
+          <select id="broadcastAudience">
+            <option value="all">Все, кто писал боту</option>
+            <option value="active">Только с активной подпиской</option>
+          </select>
+          <button class="btn btn-primary" id="broadcastPreview" type="button">Превью перед отправкой</button>
+        </div>
+        <div class="row">
+          <input
+            id="broadcastTestId"
+            type="text"
+            inputmode="numeric"
+            placeholder="Тест: твой Telegram ID"
+            autocomplete="off"
+          />
+          <button class="btn" id="broadcastTest" type="button">Отправить тест себе</button>
+        </div>
+
+        <div id="broadcastPreviewBox" class="broadcast-preview hidden">
+          <h3>Превью сообщения</h3>
+          <div id="broadcastPreviewMsg" class="broadcast-preview-msg"></div>
+          <p id="broadcastPreviewWarn" class="broadcast-warn"></p>
+          <p id="broadcastPreviewMeta" class="muted" style="margin: 0 0 12px"></p>
+          <div class="row" style="margin-top: 0">
+            <button class="btn" id="broadcastPreviewCancel" type="button">Отмена</button>
+            <button class="btn btn-danger" id="broadcastConfirmSend" type="button">
+              Подтвердить и отправить
+            </button>
+          </div>
+        </div>
+
+        <div id="broadcastProgress" class="hidden" style="margin-top: 16px"></div>
+
+        <h2 style="margin-top: 20px">История рассылок</h2>
+        <div id="broadcasts" class="bc-history">
+          <p class="empty">Введите ADMIN_SECRET и нажмите «Обновить».</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Сводка</h2>
+        <div class="grid" id="stats">
+          <p class="empty">Введите ADMIN_SECRET и нажмите «Обновить».</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Активные подписки</h2>
+        <p class="muted" style="margin-top: 0">У кого `paid_until` ещё в будущем (trial / gift / owner / оплата).</p>
+        <div style="overflow-x: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Telegram ID</th>
+                <th>Username</th>
+                <th>Имя</th>
+                <th>План</th>
+                <th>До</th>
+              </tr>
+            </thead>
+            <tbody id="subs"></tbody>
+          </table>
+        </div>
+        <p id="subsEmpty" class="empty hidden">Нет активных подписок.</p>
+      </section>
+
+      <section class="panel">
+        <h2>Последние пользователи</h2>
+        <div style="overflow-x: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Telegram ID</th>
+                <th>Username</th>
+                <th>Имя</th>
+                <th>Первый визит</th>
+                <th>Последний</th>
+              </tr>
+            </thead>
+            <tbody id="users"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Последние платежи</h2>
+        <div style="overflow-x: auto">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>User</th>
+                <th>План</th>
+                <th>₽</th>
+                <th>Статус</th>
+                <th>Создан</th>
+              </tr>
+            </thead>
+            <tbody id="payments"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <script type="module">
+      const secretInput = document.getElementById('secret');
+      const saved = sessionStorage.getItem('skinlab_admin_secret');
+      if (saved) secretInput.value = saved;
+
+      // Prefill from URL once, then strip ?secret= from address bar (history/Referer).
+      const q = new URLSearchParams(location.search).get('secret');
+      if (q) {
+        secretInput.value = q;
+        try {
+          const url = new URL(location.href);
+          url.searchParams.delete('secret');
+          history.replaceState({}, '', url.pathname + url.search + url.hash);
+        } catch {
+          /* ignore */
+        }
+      }
+
+      function escapeHtml(s) {
+        return String(s)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      }
+
+      function fmt(iso) {
+        if (!iso) return '—';
+        try {
+          return new Date(iso).toLocaleString('ru-RU');
+        } catch {
+          return iso;
+        }
+      }
+
+      function planLabel(id) {
+        const map = {
+          m1: '1 мес',
+          m3: '3 мес',
+          m6: '6 мес',
+          m12: '12 мес',
+          trial: 'trial',
+          owner: 'owner',
+          gift: 'gift',
+        };
+        return map[id] || id || '—';
+      }
+
+      async function load() {
+        const secret = secretInput.value.trim();
+        const err = document.getElementById('err');
+        err.classList.add('hidden');
+        if (!secret) {
+          err.textContent = 'Введи ADMIN_SECRET';
+          err.classList.remove('hidden');
+          return;
+        }
+        sessionStorage.setItem('skinlab_admin_secret', secret);
+
+        const res = await fetch('/api/admin/stats', {
+          headers: { 'X-Admin-Secret': secret },
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          err.textContent = 'Нет доступа или ошибка API';
+          err.classList.remove('hidden');
+          return;
+        }
+
+        const s = data.stats || {};
+        document.getElementById('stats').innerHTML = `
+          <div class="stat"><b>${escapeHtml(s.usersTotal ?? 0)}</b><span>пользователей</span></div>
+          <div class="stat"><b>${escapeHtml(s.usersNew7d ?? 0)}</b><span>новых за 7 дней</span></div>
+          <div class="stat"><b>${escapeHtml(s.usersNew30d ?? 0)}</b><span>новых за 30 дней</span></div>
+          <div class="stat"><b>${escapeHtml(s.activeSubs ?? 0)}</b><span>активных подписок</span></div>
+          <div class="stat"><b>${escapeHtml(s.paymentsConfirmedCount ?? 0)}</b><span>успешных оплат</span></div>
+          <div class="stat"><b>${escapeHtml(s.paymentsConfirmedSumRub ?? 0)}</b><span>выручка, ₽</span></div>
+        `;
+
+        const subs = Array.isArray(s.activeSubscriptions) ? s.activeSubscriptions : [];
+        const subsEmpty = document.getElementById('subsEmpty');
+        document.getElementById('subs').innerHTML = subs
+          .map(
+            (u) => `<tr>
+              <td>${escapeHtml(u.telegram_id)}</td>
+              <td>${u.username ? '@' + escapeHtml(u.username) : '—'}</td>
+              <td>${escapeHtml(u.first_name || '—')}</td>
+              <td>${escapeHtml(planLabel(u.plan_id))}</td>
+              <td>${escapeHtml(fmt(u.paid_until))}</td>
+            </tr>`,
+          )
+          .join('');
+        subsEmpty.classList.toggle('hidden', subs.length > 0);
+
+        document.getElementById('users').innerHTML = (s.recentUsers || [])
+          .map(
+            (u) => `<tr>
+              <td>${escapeHtml(u.telegram_id)}</td>
+              <td>${u.username ? '@' + escapeHtml(u.username) : '—'}</td>
+              <td>${escapeHtml(u.first_name || '—')}</td>
+              <td>${escapeHtml(fmt(u.first_seen_at))}</td>
+              <td>${escapeHtml(fmt(u.last_seen_at))}</td>
+            </tr>`,
+          )
+          .join('');
+
+        document.getElementById('payments').innerHTML = (s.recentPayments || [])
+          .map(
+            (p) => `<tr>
+              <td>${escapeHtml(String(p.id).slice(0, 8))}…</td>
+              <td>${escapeHtml(p.telegram_id)}</td>
+              <td>${escapeHtml(planLabel(p.plan_id))}</td>
+              <td>${escapeHtml(p.amount_rub)}</td>
+              <td>${escapeHtml(p.status)}</td>
+              <td>${escapeHtml(fmt(p.created_at))}</td>
+            </tr>`,
+          )
+          .join('');
+      }
+
+      document.getElementById('load').addEventListener('click', () => {
+        load();
+        loadBroadcasts();
+      });
+
+      document.getElementById('grant').addEventListener('click', async () => {
+        const secret = secretInput.value.trim();
+        const err = document.getElementById('err');
+        const ok = document.getElementById('ok');
+        err.classList.add('hidden');
+        ok.classList.add('hidden');
+        const telegramId = document.getElementById('grantId').value.trim();
+        const daysVal = document.getElementById('grantDays').value;
+        if (!secret) {
+          err.textContent = 'Введи ADMIN_SECRET';
+          err.classList.remove('hidden');
+          return;
+        }
+        if (!/^\d{3,20}$/.test(telegramId)) {
+          err.textContent = 'Нужен числовой telegram_id';
+          err.classList.remove('hidden');
+          return;
+        }
+        sessionStorage.setItem('skinlab_admin_secret', secret);
+        const body = {
+          telegramId,
+          days: daysVal === 'forever' ? 'forever' : Number(daysVal),
+        };
+        const res = await fetch('/api/admin/grant', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'X-Admin-Secret': secret,
+          },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          err.textContent =
+            data.error === 'forbidden'
+              ? 'Нет доступа'
+              : data.error === 'invalid_telegram_id'
+                ? 'Некорректный telegram_id'
+                : 'Не удалось выдать доступ';
+          err.classList.remove('hidden');
+          return;
+        }
+        ok.textContent = `Доступ выдан ${data.telegramId}: ${data.planId} до ${fmt(data.paidUntil)}`;
+        ok.classList.remove('hidden');
+        load();
+      });
+
+      const BROADCAST_MAX = 4096;
+      let broadcastTimer = null;
+      let pendingBroadcast = null;
+
+      function adminHeaders() {
+        return {
+          'content-type': 'application/json',
+          'X-Admin-Secret': secretInput.value.trim(),
+        };
+      }
+
+      function showErr(text) {
+        const err = document.getElementById('err');
+        const ok = document.getElementById('ok');
+        ok.classList.add('hidden');
+        err.textContent = text;
+        err.classList.remove('hidden');
+      }
+
+      function showOk(text) {
+        const err = document.getElementById('err');
+        const ok = document.getElementById('ok');
+        err.classList.add('hidden');
+        ok.textContent = text;
+        ok.classList.remove('hidden');
+      }
+
+      function fmtNum(n) {
+        const v = Number(n) || 0;
+        return v.toLocaleString('ru-RU');
+      }
+
+      function fmtBroadcastDate(iso) {
+        if (!iso) return '—';
+        try {
+          const d = new Date(iso);
+          const date = d.toLocaleDateString('ru-RU');
+          const time = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+          return `${date} ${time}`;
+        } catch {
+          return iso;
+        }
+      }
+
+      function audienceLabel(id) {
+        return id === 'active' ? 'Только с активной подпиской' : 'Все пользователи';
+      }
+
+      function statusBadge(id) {
+        const map = {
+          queued: 'QUEUED',
+          sending: 'SENDING',
+          done: 'DONE',
+          cancelled: 'CANCELLED',
+        };
+        const label = map[id] || String(id || '').toUpperCase();
+        return `<span class="bc-badge ${escapeHtml(id || '')}">${label}</span>`;
+      }
+
+      function updateCharCount() {
+        const el = document.getElementById('broadcastChars');
+        const len = document.getElementById('broadcastText').value.length;
+        el.textContent = `${len} / ${BROADCAST_MAX}`;
+        el.classList.toggle('warn', len >= BROADCAST_MAX - 200 && len < BROADCAST_MAX);
+        el.classList.toggle('bad', len >= BROADCAST_MAX);
+      }
+
+      function hidePreview() {
+        pendingBroadcast = null;
+        document.getElementById('broadcastPreviewBox').classList.add('hidden');
+      }
+
+      function processedCount(b) {
+        return (Number(b.sent) || 0) + (Number(b.failed) || 0) + (Number(b.blocked) || 0);
+      }
+
+      function recipientsTotal(b) {
+        const stored = Number(b.recipients_total) || 0;
+        if (stored > 0) return stored;
+        return processedCount(b);
+      }
+
+      function renderProgress(active) {
+        const box = document.getElementById('broadcastProgress');
+        if (!active) {
+          box.classList.add('hidden');
+          box.innerHTML = '';
+          return;
+        }
+        const total = recipientsTotal(active);
+        const done = processedCount(active);
+        const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+        box.classList.remove('hidden');
+        box.innerHTML = `
+          <h2 style="margin: 0 0 8px">Сейчас отправляется</h2>
+          <div class="bc-card">
+            <div class="bc-card-top">
+              <span class="bc-date">${escapeHtml(fmtBroadcastDate(active.created_at))}</span>
+              ${statusBadge(active.status)}
+            </div>
+            <p class="bc-quote">«${escapeHtml(String(active.text || '').slice(0, 180))}${
+              String(active.text || '').length > 180 ? '…' : ''
+            }»</p>
+            <p class="bc-meta">${escapeHtml(audienceLabel(active.audience))} · ${fmtNum(total)} получател${
+              total % 10 === 1 && total % 100 !== 11 ? 'ь' : 'ей'
+            }</p>
+            <div class="bc-progress">
+              <div class="bc-progress-track">
+                <div class="bc-progress-fill" style="width:${pct}%"></div>
+              </div>
+              <p class="bc-progress-label">${fmtNum(done)} из ${fmtNum(total)} обработано (${pct}%)</p>
+            </div>
+            <ul class="bc-stats" style="margin-top: 10px">
+              <li class="ok">✓ ${fmtNum(active.sent)} отправлено</li>
+              <li class="fail">× ${fmtNum(active.failed)} ошибки</li>
+              <li class="skip">⊘ ${fmtNum(active.blocked)} заблокировали бота</li>
+            </ul>
+            <div class="row">
+              <button class="btn" type="button" data-cancel="${escapeHtml(active.id)}">Остановить</button>
+            </div>
+          </div>
+        `;
+      }
+
+      function renderHistory(rows) {
+        const box = document.getElementById('broadcasts');
+        if (!rows.length) {
+          box.innerHTML = '<p class="empty">Рассылок ещё не было.</p>';
+          return;
+        }
+        box.innerHTML = rows
+          .map((b) => {
+            const total = recipientsTotal(b);
+            const text = String(b.text || '');
+            const quote = text.length > 220 ? `${text.slice(0, 220)}…` : text;
+            const stop =
+              b.status === 'queued' || b.status === 'sending'
+                ? `<div class="row"><button class="btn" type="button" data-cancel="${escapeHtml(b.id)}">Остановить</button></div>`
+                : '';
+            const isActive = b.status === 'queued' || b.status === 'sending';
+            const progress =
+              isActive && total > 0
+                ? (() => {
+                    const done = processedCount(b);
+                    const pct = Math.min(100, Math.round((done / total) * 100));
+                    return `<div class="bc-progress">
+                      <div class="bc-progress-track">
+                        <div class="bc-progress-fill" style="width:${pct}%"></div>
+                      </div>
+                      <p class="bc-progress-label">${fmtNum(done)} / ${fmtNum(total)} · ${pct}%</p>
+                    </div>`;
+                  })()
+                : '';
+            return `<article class="bc-card">
+              <div class="bc-card-top">
+                <span class="bc-date">${escapeHtml(fmtBroadcastDate(b.created_at))}</span>
+                ${statusBadge(b.status)}
+              </div>
+              <p class="bc-quote">«${escapeHtml(quote)}»</p>
+              <p class="bc-meta">${escapeHtml(audienceLabel(b.audience))}<br>${fmtNum(total)} получател${
+                total % 10 === 1 && total % 100 !== 11 ? 'ь' : 'ей'
+              }</p>
+              <ul class="bc-stats">
+                <li class="ok">✓ ${fmtNum(b.sent)} отправлено</li>
+                <li class="fail">× ${fmtNum(b.failed)} ошибки</li>
+                <li class="skip">⊘ ${fmtNum(b.blocked)} заблокировали бота</li>
+              </ul>
+              ${progress}
+              ${stop}
+            </article>`;
+          })
+          .join('');
+      }
+
+      function bindCancelButtons(root) {
+        root.querySelectorAll('[data-cancel]').forEach((btn) => {
+          btn.addEventListener('click', async () => {
+            const id = btn.getAttribute('data-cancel');
+            if (!confirm('Остановить рассылку? Уже отправленные сообщения не исчезнут.')) return;
+            const res = await fetch('/api/admin/broadcast/cancel', {
+              method: 'POST',
+              headers: adminHeaders(),
+              body: JSON.stringify({ id }),
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.ok) {
+              showErr('Не удалось остановить');
+              return;
+            }
+            showOk('Рассылка остановлена. Уже отправленные сообщения останутся у пользователей.');
+            loadBroadcasts();
+          });
+        });
+      }
+
+      async function loadBroadcasts() {
+        const secret = secretInput.value.trim();
+        if (!secret) return;
+        const res = await fetch('/api/admin/broadcasts', { headers: { 'X-Admin-Secret': secret } });
+        const data = await res.json().catch(() => ({}));
+        const box = document.getElementById('broadcasts');
+        if (!res.ok || !data.ok) {
+          box.innerHTML = '<p class="empty">Не удалось загрузить историю.</p>';
+          document.getElementById('broadcastProgress').classList.add('hidden');
+          return;
+        }
+        const rows = Array.isArray(data.broadcasts) ? data.broadcasts : [];
+        const active = rows.find((b) => b.status === 'queued' || b.status === 'sending') || null;
+        renderProgress(active);
+        renderHistory(rows);
+        bindCancelButtons(document.getElementById('broadcastProgress'));
+        bindCancelButtons(box);
+
+        if (active && !broadcastTimer) {
+          broadcastTimer = setInterval(() => {
+            loadBroadcasts();
+          }, 3000);
+        }
+        if (!active && broadcastTimer) {
+          clearInterval(broadcastTimer);
+          broadcastTimer = null;
+        }
+      }
+
+      document.getElementById('broadcastText').addEventListener('input', () => {
+        updateCharCount();
+        if (pendingBroadcast) hidePreview();
+      });
+      document.getElementById('broadcastAudience').addEventListener('change', () => {
+        if (pendingBroadcast) hidePreview();
+      });
+      updateCharCount();
+
+      document.getElementById('broadcastPreview').addEventListener('click', async () => {
+        const secret = secretInput.value.trim();
+        const text = document.getElementById('broadcastText').value.trim();
+        const audience = document.getElementById('broadcastAudience').value;
+        if (!secret) return showErr('Введи ADMIN_SECRET');
+        if (!text) return showErr('Напиши текст');
+        if (text.length > BROADCAST_MAX) return showErr(`Максимум ${BROADCAST_MAX} символов`);
+        sessionStorage.setItem('skinlab_admin_secret', secret);
+
+        const res = await fetch('/api/admin/broadcast', {
+          method: 'POST',
+          headers: adminHeaders(),
+          body: JSON.stringify({ text, audience, preview: true }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) return showErr('Не удалось посчитать получателей');
+        if (!data.recipients) return showErr('Некому отправлять — никто ещё не написал боту');
+
+        pendingBroadcast = { text, audience, recipients: data.recipients };
+        document.getElementById('broadcastPreviewMsg').textContent = text;
+        document.getElementById('broadcastPreviewWarn').textContent =
+          `Данное сообщение получит ${fmtNum(data.recipients)} пользователей. Отменить уже ушедшие сообщения нельзя.`;
+        document.getElementById('broadcastPreviewMeta').textContent =
+          `Аудитория: ${audienceLabel(audience)} · ${text.length} символов`;
+        document.getElementById('broadcastPreviewBox').classList.remove('hidden');
+        document.getElementById('broadcastPreviewBox').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        showOk('Проверь превью ниже и подтверди отправку.');
+      });
+
+      document.getElementById('broadcastPreviewCancel').addEventListener('click', () => {
+        hidePreview();
+        showOk('Отправка отменена. Сообщение не ушло.');
+      });
+
+      document.getElementById('broadcastConfirmSend').addEventListener('click', async () => {
+        if (!pendingBroadcast) return showErr('Сначала открой превью');
+        const secret = secretInput.value.trim();
+        if (!secret) return showErr('Введи ADMIN_SECRET');
+
+        const { text, audience, recipients } = pendingBroadcast;
+        const again = confirm(
+          `Подтверди ещё раз:\n\nДанное сообщение получит ${recipients} пользователей.\n\nОтправить сейчас?`,
+        );
+        if (!again) return;
+
+        const res = await fetch('/api/admin/broadcast', {
+          method: 'POST',
+          headers: adminHeaders(),
+          body: JSON.stringify({ text, audience }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          showErr(data.error === 'no_recipients' ? 'Некому отправлять' : 'Не удалось запустить рассылку');
+          return;
+        }
+        hidePreview();
+        document.getElementById('broadcastText').value = '';
+        updateCharCount();
+        showOk(`Рассылка запущена на ${fmtNum(data.recipients)} человек. Следи за прогрессом ниже.`);
+        loadBroadcasts();
+      });
+
+      document.getElementById('broadcastTest').addEventListener('click', async () => {
+        const secret = secretInput.value.trim();
+        const text = document.getElementById('broadcastText').value.trim();
+        const telegramId = document.getElementById('broadcastTestId').value.trim();
+        if (!secret) return showErr('Введи ADMIN_SECRET');
+        if (!text) return showErr('Напиши текст');
+        if (text.length > BROADCAST_MAX) return showErr(`Максимум ${BROADCAST_MAX} символов`);
+        if (!/^\d{3,20}$/.test(telegramId)) return showErr('Нужен числовой telegram_id');
+        sessionStorage.setItem('skinlab_admin_secret', secret);
+        const res = await fetch('/api/admin/broadcast/test', {
+          method: 'POST',
+          headers: adminHeaders(),
+          body: JSON.stringify({ text, telegramId }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          showErr(data.message || 'Тест не ушёл. Этот человек должен был нажать Start у бота.');
+          return;
+        }
+        showOk(`Тест ушёл на ${data.telegramId}. Проверь чат с ботом.`);
+      });
+
+      if (secretInput.value) {
+        load();
+        loadBroadcasts();
+      }
+    </script>
+  </body>
+</html>

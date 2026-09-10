@@ -1,25 +1,26 @@
 {
-  "name": "cosmetics-consulting",
-  "version": "0.2.0",
+  "name": "skinlab",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "SkinLab — справочник уход-активов: PWA + API каталога косметики",
-  "engines": {
-    "node": ">=20.11"
-  },
+  "description": "SkinLab — Telegram bot + Mini App on Cloudflare Workers (sellable product)",
   "scripts": {
-    "start": "node server/src/server.js",
-    "dev": "node --watch server/src/server.js",
-    "web": "./start.sh",
-    "seed": "node server/scripts/seed-demo.js",
-    "import:obf": "node server/scripts/import-obf.js",
-    "smoke": "node server/scripts/smoke.js",
-    "bot": "node server/scripts/telegram-bot-poll.js",
-    "bot:configure": "node server/scripts/telegram-configure.js"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "db:migrate:local": "wrangler d1 migrations apply skinlab --local",
+    "db:migrate:remote": "wrangler d1 migrations apply skinlab --remote",
+    "typecheck": "tsc --noEmit",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@fastify/cors": "^11.3.0",
-    "better-sqlite3": "^13.0.3",
-    "fastify": "^5.11.3"
+    "hono": "^4.7.2"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250317.0",
+    "typescript": "^5.8.2",
+    "wrangler": "4.13.2"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

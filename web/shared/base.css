@@ -1,0 +1,831 @@
+/* Базовый сброс и общие компоненты контента SkinLab (.sl-*). */
+
+:root {
+  /* Базовая палитра: песок, олива, тёмно-коричневый, холодный серо-голубой. */
+  --sand: #dfd7c7;
+  --olive: #7a774a;
+  --ink: #483f29;
+  --steel: #a1afb8;
+
+  --bg: #c6c7c1;
+  --surface: var(--sand);
+  --surface-2: #b7bdbd;
+  --text: var(--ink);
+  --muted: #5b5847;
+  --line: rgba(72, 63, 41, 0.14);
+  --brand: var(--olive);
+  /* Затемнённая олива — для мелкого текста, где нужен контраст. */
+  --brand-deep: #615b3a;
+  --brand-ink: var(--sand);
+  /* Четыре уровня совместимости различаются оттенком и «весом» заливки:
+     олива → хорошо, серо-голубой → нейтрально, коричневый → осторожно,
+     плотный коричневый → нельзя. */
+  --good: #5e5b35;
+  --good-bg: rgba(122, 119, 74, 0.2);
+  --ok: #556168;
+  --ok-bg: rgba(161, 175, 184, 0.4);
+  --warn: #665c48;
+  --warn-bg: rgba(72, 63, 41, 0.1);
+  --bad: var(--ink);
+  --bad-bg: rgba(72, 63, 41, 0.2);
+  --radius: 22px;
+  --radius-sm: 14px;
+  --shadow: 0 18px 40px -24px rgba(72, 63, 41, 0.45);
+  --font-head: system-ui, sans-serif;
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-head);
+  margin: 0;
+  line-height: 1.15;
+}
+
+p {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+
+/* Скроллбар */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.sl-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  line-height: 1.3;
+  padding: 5px 10px;
+  border-radius: 99px;
+  background: var(--surface-2);
+  color: var(--muted);
+  border: 1px solid transparent;
+}
+
+.sl-pill--good {
+  background: var(--good-bg);
+  color: var(--good);
+}
+.sl-pill--ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+.sl-pill--warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+.sl-pill--bad {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+.sl-pill--night {
+  background: var(--pill-night-bg, rgba(88, 86, 214, 0.14));
+  color: var(--pill-night-fg, #6c69d8);
+}
+.sl-pill--day {
+  background: var(--pill-day-bg, rgba(240, 173, 78, 0.16));
+  color: var(--pill-day-fg, #c98b28);
+}
+
+/* ---------- Детальная карточка ---------- */
+
+.sl-detail__head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.sl-detail__group {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brand-deep, var(--brand));
+  font-weight: 600;
+}
+
+.sl-detail__title {
+  font-size: clamp(26px, 4vw, 38px);
+  margin: 4px 0;
+}
+
+.sl-detail__inci {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sl-detail__lead {
+  font-size: 16.5px;
+  color: var(--text);
+  opacity: 0.86;
+  max-width: 62ch;
+}
+
+.sl-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 20px 0 14px;
+}
+
+.sl-stat {
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  display: grid;
+  gap: 6px;
+}
+
+.sl-stat__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.sl-stat b {
+  font-size: 15px;
+}
+
+.sl-meter {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.sl-meter__dot {
+  width: 16px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--line);
+}
+
+.sl-meter__dot.is-on {
+  background: var(--brand);
+}
+
+.sl-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.sl-sect {
+  margin-top: 26px;
+}
+
+.sl-sect__title {
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sl-list {
+  display: grid;
+  gap: 9px;
+}
+
+.sl-list li {
+  position: relative;
+  padding-left: 26px;
+  font-size: 15px;
+}
+
+.sl-list li::before {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.sl-list--good li::before {
+  content: '✓';
+  color: var(--good);
+}
+.sl-list--bad li::before {
+  content: '✕';
+  color: var(--bad);
+}
+.sl-list--warn li::before {
+  content: '!';
+  color: var(--warn);
+  font-weight: 700;
+}
+
+.sl-list--steps {
+  counter-reset: step;
+}
+
+.sl-list--steps li {
+  padding-left: 34px;
+}
+
+.sl-list--steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  top: 3px;
+}
+
+.sl-skins {
+  display: grid;
+  gap: 8px;
+}
+
+.sl-skin {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  border-left: 3px solid var(--line);
+  font-size: 14px;
+}
+
+.sl-skin__verdict {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.sl-skin--good {
+  border-left-color: var(--good);
+}
+.sl-skin--good .sl-skin__verdict {
+  color: var(--good);
+}
+.sl-skin--ok {
+  border-left-color: var(--ok);
+}
+.sl-skin--ok .sl-skin__verdict {
+  color: var(--ok);
+}
+.sl-skin--warn {
+  border-left-color: var(--warn);
+}
+.sl-skin--warn .sl-skin__verdict {
+  color: var(--warn);
+}
+.sl-skin--bad {
+  border-left-color: var(--bad);
+}
+.sl-skin--bad .sl-skin__verdict {
+  color: var(--bad);
+}
+
+.sl-rels {
+  display: grid;
+  gap: 14px;
+}
+
+.sl-rel {
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+}
+
+.sl-rel__head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-bottom: 10px;
+}
+
+.sl-rel__icon {
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 12px;
+  color: var(--on-tone, var(--sand));
+}
+
+.sl-rel--good {
+  background: var(--good-bg);
+  border-color: color-mix(in srgb, var(--good) 30%, transparent);
+}
+.sl-rel--good .sl-rel__head {
+  color: var(--good);
+}
+.sl-rel--good .sl-rel__icon {
+  background: var(--good);
+}
+.sl-rel--ok .sl-rel__head {
+  color: var(--ok);
+}
+.sl-rel--ok .sl-rel__icon {
+  background: var(--ok);
+}
+.sl-rel--warn {
+  background: var(--warn-bg);
+  border-color: color-mix(in srgb, var(--warn) 30%, transparent);
+}
+.sl-rel--warn .sl-rel__head {
+  color: var(--warn);
+}
+.sl-rel--warn .sl-rel__icon {
+  background: var(--warn);
+}
+.sl-rel--bad {
+  background: var(--bad-bg);
+  border-color: color-mix(in srgb, var(--bad) 30%, transparent);
+}
+.sl-rel--bad .sl-rel__head {
+  color: var(--bad);
+}
+.sl-rel--bad .sl-rel__icon {
+  background: var(--bad);
+}
+
+.sl-rel__list {
+  display: grid;
+  gap: 8px;
+}
+
+.sl-rel__item {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 3px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 75%, transparent);
+  transition: transform 0.25s var(--ease), background 0.2s;
+}
+
+.sl-rel__item:hover {
+  transform: translateX(3px);
+  background: var(--surface);
+}
+
+.sl-rel__name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.sl-rel__why {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sl-tip {
+  margin-top: 26px;
+  padding: 16px 18px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--brand) 12%, transparent);
+  display: grid;
+  gap: 6px;
+}
+
+.sl-tip__mark {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--brand-deep, var(--brand));
+}
+
+.sl-disclaimer {
+  margin-top: 20px;
+  font-size: 12px;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+.sl-badge {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sl-badge--drug {
+  color: var(--on-tone, var(--sand));
+  background: var(--bad);
+}
+
+.sl-sources {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sl-source {
+  color: var(--brand-deep, var(--brand));
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--brand) 40%, transparent);
+  overflow-wrap: anywhere;
+}
+
+.sl-source:hover {
+  border-bottom-color: var(--brand);
+}
+
+/* --- Иконки активов --- */
+
+.sl-ico {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  color: var(--text);
+  background: var(--surface-2);
+  vertical-align: middle;
+}
+
+.sl-ico__svg {
+  width: 58%;
+  height: 58%;
+}
+
+.sl-ico--xs {
+  width: 14px;
+  height: 14px;
+}
+
+.sl-ico--sm {
+  width: 28px;
+  height: 28px;
+}
+
+.sl-ico--md {
+  width: 42px;
+  height: 42px;
+}
+
+.sl-ico--lg {
+  width: 64px;
+  height: 64px;
+}
+
+/* Группы читаются по паре «заливка + вес»: сплошные бейджи — сильные активы,
+   прозрачные — мягкие. Цвета берутся из темы, чтобы палитра оставалась единой. */
+
+.sl-ico--night {
+  background: var(--ico-night-bg, #d9e0ef);
+  color: var(--ico-night-fg, #3a4a6b);
+}
+
+.sl-ico--day {
+  background: var(--ico-day-bg, #f3e2c8);
+  color: var(--ico-day-fg, #7a5420);
+}
+
+.sl-ico--warn {
+  background: var(--ico-warn-bg, #f0dcc4);
+  color: var(--ico-warn-fg, #8a5a22);
+}
+
+.sl-ico--ok {
+  background: var(--ico-ok-bg, #d5e6f2);
+  color: var(--ico-ok-fg, #2f5f7a);
+}
+
+.sl-ico--good {
+  background: var(--ico-good-bg, #d7e6d6);
+  color: var(--ico-good-fg, #345a3c);
+}
+
+.sl-ico--soft {
+  background: var(--ico-soft-bg, #eadff0);
+  color: var(--ico-soft-fg, #5c4468);
+}
+
+.sl-ico--neutral {
+  background: var(--ico-neutral-bg, var(--surface-2));
+  color: var(--ico-neutral-fg, var(--text));
+}
+
+/* --- Интерфейсные иконки --- */
+
+.sl-uico {
+  flex: none;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* --- Подсказки (?) --- */
+
+.sl-tipbtn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 4px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.sl-tipbtn__mark {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1;
+}
+
+.sl-tipbtn__pop {
+  display: none;
+  position: absolute;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: min(240px, 70vw);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--fill-strong, var(--ink));
+  color: var(--on-fill, var(--sand));
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+
+.sl-tipbtn__pop::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--fill-strong, var(--ink));
+}
+
+.sl-tipbtn[aria-expanded='true'] .sl-tipbtn__pop {
+  display: block;
+}
+
+/* --- Инструкция по нанесению --- */
+
+.sl-apply {
+  display: grid;
+  gap: 16px;
+}
+
+.sl-apply__layers {
+  display: grid;
+  gap: 10px;
+}
+
+.sl-apply__layer {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+
+.sl-apply__num {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-ink);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sl-apply__layer b {
+  display: block;
+  font-size: 14.5px;
+}
+
+.sl-apply__layer p,
+.sl-apply__rule p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
+.sl-apply__rules {
+  display: grid;
+  gap: 8px;
+}
+
+.sl-apply__rule {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+
+.sl-apply__rule b {
+  font-size: 13.5px;
+}
+
+.sl-detail__head .sl-ico {
+  margin-right: 4px;
+}
+
+.sl-stat__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.sl-rel__name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---------- Горизонтальные ленты: своя полоса прокрутки со стрелками ---------- */
+
+.sl-hscroll {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Родной скроллбар прячем — вместо него своя полоса под лентой. */
+.sl-hscroll__track {
+  scrollbar-width: none;
+}
+
+.sl-hscroll__track::-webkit-scrollbar {
+  display: none;
+}
+
+.sl-hscroll__bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.sl-hscroll.is-overflow .sl-hscroll__bar {
+  display: flex;
+}
+
+.sl-hscroll__arrow {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  color: var(--muted);
+  transition: color 0.2s, opacity 0.2s, transform 0.15s var(--ease);
+}
+
+.sl-hscroll__arrow svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+
+.sl-hscroll__arrow:hover:not(:disabled) {
+  color: var(--brand);
+}
+
+.sl-hscroll__arrow:active:not(:disabled) {
+  transform: scale(0.9);
+}
+
+.sl-hscroll__arrow:disabled {
+  opacity: 0.28;
+  cursor: default;
+}
+
+.sl-hscroll__rail {
+  position: relative;
+  flex: 1;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+  touch-action: none;
+}
+
+.sl-hscroll__thumb {
+  position: absolute;
+  top: -2px;
+  height: 8px;
+  min-width: 24px;
+  border-radius: 999px;
+  background: var(--brand);
+  opacity: 0.75;
+  touch-action: none;
+}
+
+.sl-hscroll__thumb:hover {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

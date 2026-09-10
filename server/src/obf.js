@@ -6,7 +6,7 @@
  * а не через этот клиент. См. server/scripts/import-obf.js.
  */
 const BASE = process.env.OBF_BASE || 'https://world.openbeautyfacts.org';
-const USER_AGENT = process.env.OBF_UA || 'SkinLab/0.1 (cosmetics-consulting; contact: musafir-dakaev@ya.ru)';
+const USER_AGENT = process.env.OBF_UA || 'SkinLab/0.1 (cosmetics-consulting)';
 
 const FIELDS = [
   'code',

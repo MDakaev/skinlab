@@ -1,0 +1,41 @@
+# SkinLab — Cloudflare Workers config.
+# After `wrangler d1 create skinlab`, paste the real database_id below.
+
+name = "skinlab"
+main = "src/index.ts"
+compatibility_date = "2025-03-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Mini App + legal + admin static files
+[assets]
+directory = "./web"
+binding = "ASSETS"
+# Real files under web/ (legal, admin). Unknown paths → 404, not forced to index.html.
+not_found_handling = "none"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "skinlab"
+# Replace with ID from: npx wrangler d1 create skinlab
+database_id = "78d02700-4180-41d3-84e0-dd79236bd907"
+migrations_dir = "migrations"
+
+# Non-secret defaults (override in dashboard / .dev.vars)
+[vars]
+PUBLIC_APP_NAME = "SkinLab"
+PUBLIC_BASE_URL = "https://skinlab.skinlabapp.workers.dev"
+SUPPORT_USERNAME = "MDakaev"
+SUPPORT_EMAIL = "musafir-dakaev@ya.ru"
+# Forever-free access for owner (numeric Telegram user id)
+OWNER_TELEGRAM_IDS = "712300806"
+
+# Daily reminders: every 5 minutes, due rows via next_*_at
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Secrets (set via `wrangler secret put` or .dev.vars for local):
+# TELEGRAM_BOT_TOKEN
+# TELEGRAM_WEBHOOK_SECRET
+# PLATEGA_MERCHANT_ID
+# PLATEGA_SECRET
+# ADMIN_SECRET

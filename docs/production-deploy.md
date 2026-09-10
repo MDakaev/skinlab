@@ -94,7 +94,8 @@ cd ~/skinlab
 node -e "import('./server/src/loadEnv.js'); import { webhookSecretHint } from './server/src/telegram/auth.js'; console.log(webhookSecretHint());"
 ```
 
-3. Установка webhook (подставьте токен и секрет сами):
+3. Установка webhook (подставьте токен и секрет сами).
+   Если с VDS `api.telegram.org:443` недоступен — выполните `setWebhook` **с Mac** или через прокси (см. ниже):
 
 ```bash
 curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/setWebhook" \
@@ -109,6 +110,35 @@ cd ~/skinlab && npm run bot:configure
 ```
 
 Проверка: `curl -sS "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getWebhookInfo"`
+
+### 5.1 Прокси только для Telegram (РФ / блокировка Bot API)
+
+Нужен, если с VDS ping до IP Telegram есть, а **HTTPS :443 к `api.telegram.org` — timeout**.
+Прокси используется **только** исходящими вызовами Bot API (`sendMessage`, `setMyCommands`, …). ЮKassa и остальной трафик идут напрямую.
+
+1. Поднимите SOCKS5 вне РФ (пример: SSH-туннель с Selectel на зарубежный VPS):
+
+```bash
+# на VDS Selectel — держать постоянно (systemd unit / autossh)
+ssh -fN -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes \
+  -D 127.0.0.1:1080 user@YOUR_EU_VPS
+```
+
+2. Проверка:
+
+```bash
+curl -x socks5h://127.0.0.1:1080 -I --max-time 15 https://api.telegram.org
+```
+
+3. В `/etc/skinlab.env` (или `.env`):
+
+```bash
+TELEGRAM_PROXY_URL=socks5://127.0.0.1:1080
+```
+
+Поддерживаются `http://`, `https://`, `socks5://` (с логином: `socks5://user:pass@host:port`).
+
+4. `sudo systemctl restart skinlab` и снова `npm run bot:configure` (уже через прокси).
 
 ## 6. ЮKassa
 

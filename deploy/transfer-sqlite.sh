@@ -31,14 +31,14 @@ sqlite3 "$SRC" "PRAGMA wal_checkpoint(TRUNCATE);"
 
 echo "==> Целостность источника"
 sqlite3 "$SRC" "PRAGMA integrity_check;" | tee "$OUT_DIR/integrity-src.txt"
-grep -qx OK "$OUT_DIR/integrity-src.txt"
+grep -qx 'ok' "$OUT_DIR/integrity-src.txt"
 
 echo "==> Online backup в $EXPORT (консистентный снимок)"
 sqlite3 "$SRC" ".backup '$EXPORT'"
 
 echo "==> Целостность экспорта"
 sqlite3 "$EXPORT" "PRAGMA integrity_check;" | tee "$OUT_DIR/integrity-export.txt"
-grep -qx OK "$OUT_DIR/integrity-export.txt"
+grep -qx 'ok' "$OUT_DIR/integrity-export.txt"
 
 if command -v shasum >/dev/null 2>&1; then
   shasum -a 256 "$EXPORT" | tee "$EXPORT.sha256"
