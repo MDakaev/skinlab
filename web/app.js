@@ -263,8 +263,8 @@ function pickerView() {
   return `
     <div class="screen screen--home">
       <div class="hello">
-        <p class="hello__brand">SkinLab</p>
-        <h1>Что с чем сочетать</h1>
+        <p class="hello__brand">МЕНЬШЕ ДОГАДОК. БОЛЬШЕ ПОНИМАНИЯ.</p>
+        <h1>Ваш уход.<br><em>Всё сочетается.</em></h1>
         <p>Выберите актив — покажем безопасные пары и то, что лучше развести по дням.</p>
       </div>
 
