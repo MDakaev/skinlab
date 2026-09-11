@@ -102,10 +102,20 @@ function glyph(id) {
  * @param {object} active
  * @param {'sm'|'md'|'lg'} [size]
  */
+const ACTIVE_MARKS = {
+  retinol:['A','lilac'], retinal:['RAL','lilac'], adapalene:['ADA','lilac'],
+  bakuchiol:['BAK','sage'], vitc:['C','apricot'], 'vitc-derivative':['C+','apricot'],
+  niacinamide:['B3','apricot'], azelaic:['AZ','rose'], aha:['AHA','rose'],
+  bha:['BHA','rose'], pha:['PHA','rose'], bp:['BPO','rose'],
+  tranexamic:['TXA','lilac'], arbutin:['ARB','lilac'], ha:['HA','blue'],
+  moisturizer:['CRM','sand'], ceramides:['CER','sage'], peptides:['PEP','lilac'],
+  panthenol:['B5','sage'], cica:['CICA','sage'], urea:['UREA','blue'],
+  zinc:['Zn','sand'], spf:['SPF','apricot'], squalane:['SQ','sand'], vite:['E','apricot'],
+};
 export function activeIcon(active, size = 'md') {
   if (!active) return '';
-  const tone = toneFor(active);
-  return `<span class="sl-ico sl-ico--${size} sl-ico--${tone}" title="${escapeAttr(active.name)}" aria-hidden="true">${glyph(active.id)}</span>`;
+  const [label, tone] = ACTIVE_MARKS[active.id] || [active.inci.slice(0,3).toUpperCase(), 'sand'];
+  return `<span class="sl-ico sl-ico--${size} active-mark active-mark--${tone} ${label.length > 2 ? 'active-mark--compact' : ''}" title="${escapeAttr(active.name)}" aria-hidden="true">${escapeAttr(label)}</span>`;
 }
 
 function escapeAttr(s) {
